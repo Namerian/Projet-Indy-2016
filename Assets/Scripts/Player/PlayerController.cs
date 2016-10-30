@@ -6,9 +6,11 @@ using System.Collections.Generic;
 
 public abstract class PlayerController : MonoBehaviour, IInputListener
 {
-	private const float DASH_TIME = 0.25f;
+	private const float TIME_DASH = 0.25f;
+	private const float TIME_PUSH = 0.05f;
 	private const float SPEED_DASH = 15;
 	private const float SPEED_NORMAL = 5f;
+	private const float SPEED_PUSH = 25f;
 
 	private CharacterController characterController;
 	private GameController gameController;
@@ -22,9 +24,14 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 	private bool aButtonCurrentlyPressed;
 	private bool aButtonPreviouslyPressed;
 
-	private Vector3 moveDirection;
 	private bool isDashing;
+	private bool isPushed;
+
 	private float dashTimer;
+	private float pushTimer;
+
+	private Vector3 moveDirection;
+	private Vector3 pushDirection;
 
 	private Item currentItem;
 	private List<Item> overlappingItems;
@@ -64,7 +71,7 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 		float _speed = SPEED_NORMAL;
 
 		if (isDashing) {
-			if (dashTimer >= DASH_TIME) {
+			if (dashTimer >= TIME_DASH) {
 				isDashing = false;
 			} else {
 				dashTimer += Time.deltaTime;
@@ -73,6 +80,15 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 		}
 
 		Vector3 _motion = moveDirection * _speed;
+
+		if (isPushed) {
+			if (pushTimer >= TIME_PUSH) {
+				isPushed = false;
+			} else {
+				pushTimer += Time.deltaTime;
+				_motion += pushDirection * SPEED_PUSH;
+			}
+		}
 
 		characterController.Move (_motion * Time.deltaTime);
 
@@ -86,7 +102,14 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 
 	void OnControllerColliderHit (ControllerColliderHit hit)
 	{
-		
+		if (hit.gameObject.tag == "Player" && isDashing) {
+			PlayerController _otherPlayer = hit.gameObject.GetComponent<PlayerController> ();
+			Vector3 _pushDirection = _otherPlayer.transform.position - this.transform.position;
+			_pushDirection.Normalize ();
+			_otherPlayer.Push (_pushDirection);
+
+			isDashing = false;
+		}
 	}
 
 	void OnTriggerEnter (Collider other)
@@ -116,7 +139,7 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 	// Input
 	//########################################################################
 
-	public void OnHandleLeftStick (int joystickIndex, Vector2 stickState)
+	void IInputListener.OnHandleLeftStick (int joystickIndex, Vector2 stickState)
 	{
 		if (joystickIndex == this.joystickIndex && !isDashing) {
 			moveDirection.Set (0, 0, 0);
@@ -133,7 +156,7 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 		}
 	}
 
-	public void OnHandleXButton (int joystickIndex, bool pressed)
+	void IInputListener.OnHandleXButton (int joystickIndex, bool pressed)
 	{
 		xButtonPreviouslyPressed = xButtonCurrentlyPressed;
 		xButtonCurrentlyPressed = pressed;
@@ -144,19 +167,45 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 		}
 	}
 
-	public void OnHandleAButton (int joystickIndex, bool pressed)
+	void IInputListener.OnHandleAButton (int joystickIndex, bool pressed)
 	{
 		aButtonPreviouslyPressed = aButtonCurrentlyPressed;
 		aButtonCurrentlyPressed = pressed;
 
 		if (joystickIndex == this.joystickIndex && !aButtonPreviouslyPressed && aButtonCurrentlyPressed && !isDashing && overlappingItems.Count > 0) {
-			if (currentItem != null) {
-				
-			}
+			DropCurrentItem ();
 
 			currentItem = overlappingItems [0];
 			currentItem.gameObject.SetActive (false);
 			uiCurrentItemText.text = "Item: " + currentItem.itemName;
+		}
+	}
+
+	//########################################################################
+	//
+	//########################################################################
+
+	public void Push (Vector3 direction)
+	{
+		isPushed = true;
+		pushTimer = 0f;
+		pushDirection = direction;
+
+		DropCurrentItem ();
+	}
+
+	//########################################################################
+	//
+	//########################################################################
+
+	private void DropCurrentItem ()
+	{
+		if (currentItem != null) {
+			currentItem.transform.position = this.transform.position + moveDirection;
+			currentItem.gameObject.SetActive (true);
+
+			uiCurrentItemText.text = "Item: None";
+			currentItem = null;
 		}
 	}
 }
