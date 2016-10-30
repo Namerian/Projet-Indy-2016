@@ -33,6 +33,9 @@ public class InputHandler : MonoBehaviour
 				continue;
 			}
 
+			//######################################################################
+			// left stick
+
 			float _xAxis = Input.GetAxis (JOYSTICK_NAMES [_joystickIndex] + "_X_Axis");
 			float _yAxis = Input.GetAxis (JOYSTICK_NAMES [_joystickIndex] + "_Y_Axis");
 			Vector2 _leftStickState = new Vector2 (_xAxis, _yAxis);
@@ -42,6 +45,9 @@ public class InputHandler : MonoBehaviour
 			foreach (IInputListener listener in inputListeners[_joystickIndex]) {
 				listener.OnHandleLeftStick (_joystickIndex, _leftStickState);
 			}
+
+			//######################################################################
+			// x button
 
 			float _xButton = Input.GetAxis (JOYSTICK_NAMES [_joystickIndex] + "_X_Button");
 			bool _xPressed = false;
@@ -53,6 +59,20 @@ public class InputHandler : MonoBehaviour
 
 			foreach (IInputListener listener in inputListeners[_joystickIndex]) {
 				listener.OnHandleXButton (_joystickIndex, _xPressed);
+			}
+
+			//######################################################################
+			// a button
+
+			float _aButton = Input.GetAxis (JOYSTICK_NAMES [_joystickIndex] + "_A_Button");
+			bool _aPressed = false;
+
+			if (_aButton > 0) {
+				_aPressed = true;
+			}
+
+			foreach (IInputListener listener in inputListeners[_joystickIndex]) {
+				listener.OnHandleAButton (_joystickIndex, _aPressed);
 			}
 		}
 	}
