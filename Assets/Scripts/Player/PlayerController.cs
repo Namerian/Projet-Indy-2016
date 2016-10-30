@@ -34,6 +34,7 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 	private Vector3 pushDirection;
 
 	private Item currentItem;
+	private GameObject currentItemGO;
 	private List<Item> overlappingItems;
 
 	//#############################################################################
@@ -174,10 +175,11 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 
 		if (joystickIndex == this.joystickIndex && !aButtonPreviouslyPressed && aButtonCurrentlyPressed && !isDashing && overlappingItems.Count > 0) {
 			DropCurrentItem ();
-
-			currentItem = overlappingItems [0];
-			currentItem.gameObject.SetActive (false);
-			uiCurrentItemText.text = "Item: " + currentItem.itemName;
+			PickUpItem ();
+			//Debug.Log ("PlayerController: OnHandleAButton: should have picked up item");
+		} else if (joystickIndex == this.joystickIndex && !aButtonPreviouslyPressed && aButtonCurrentlyPressed && !isDashing) {
+			DropCurrentItem ();
+			//Debug.Log ("PlayerController: OnHandleAButton: should have dropped item");
 		}
 	}
 
@@ -201,11 +203,27 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 	private void DropCurrentItem ()
 	{
 		if (currentItem != null) {
+			currentItemGO.SetActive (true);
 			currentItem.transform.position = this.transform.position + moveDirection;
-			currentItem.gameObject.SetActive (true);
 
 			uiCurrentItemText.text = "Item: None";
 			currentItem = null;
+			currentItemGO = null;
+		} else {
+			Debug.Log ("PlayerController: DropCurrentItem: called but item = null");
+		}
+	}
+
+	private void PickUpItem ()
+	{
+		if (currentItem == null) {
+			currentItem = overlappingItems [0];
+			currentItemGO = currentItem.gameObject;
+
+			uiCurrentItemText.text = "Item: " + currentItem.itemName;
+
+			overlappingItems.Remove (currentItem);
+			currentItem.gameObject.SetActive (false);
 		}
 	}
 }
