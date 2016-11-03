@@ -37,7 +37,6 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 
 	private Vector3 velocity;
 
-
 	// Items
 	private Item currentItem;
 	private GameObject currentItemGO;
@@ -98,10 +97,11 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 	{
 		//##################################
 		//death
-		if (!isDead) {
+		if (!isDead && !isDashing) {
 			if (IsAboveVoid ()) {
 				isDead = true;
 				respawnTimer = 0f;
+				characterController.Move (new Vector3 (0, -0.25f, 0));
 			}
 		} else if (isDead) {
 			if (respawnTimer >= RESPAWN_TIME) {
@@ -152,6 +152,10 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 
 		characterController.Move (velocity * Time.deltaTime);
 
+		if (velocity.normalized.magnitude != 0) {
+			//transform.rotation = Quaternion.LookRotation (velocity.normalized);
+			transform.forward = velocity.normalized;
+		}
 
 		//##################################
 		OnUpdate ();
