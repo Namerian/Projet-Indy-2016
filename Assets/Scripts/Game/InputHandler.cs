@@ -29,9 +29,9 @@ public class InputHandler : MonoBehaviour
 	void Update ()
 	{
 		for (int _joystickIndex = 0; _joystickIndex < 4; _joystickIndex++) {
-			if (inputListeners [_joystickIndex].Count == 0) {
+			/*if (inputListeners [_joystickIndex].Count == 0) {
 				continue;
-			}
+			}*/
 
 			//######################################################################
 			// left stick
@@ -40,7 +40,9 @@ public class InputHandler : MonoBehaviour
 			float _yAxis = Input.GetAxis (JOYSTICK_NAMES [_joystickIndex] + "_Y_Axis");
 			Vector2 _leftStickState = new Vector2 (_xAxis, _yAxis);
 
-			//Debug.Log ("InputHandler: Update: Joystick " + _joystickIndex + ": leftStick=" + _leftStickState.ToString ());
+			/*if (_xAxis != 0 || _yAxis != 0) {
+				Debug.Log ("InputHandler: Update: Joystick " + _joystickIndex + ": leftStick=" + _leftStickState.ToString ());
+			}*/
 
 			foreach (IInputListener listener in inputListeners[_joystickIndex]) {
 				listener.OnHandleLeftStick (_joystickIndex, _leftStickState);

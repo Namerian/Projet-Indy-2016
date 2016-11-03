@@ -6,18 +6,12 @@ using System.Collections.Generic;
 
 public abstract class PlayerController : MonoBehaviour, IInputListener
 {
-	private const float TIME_DASH = 0.25f;
-	private const float TIME_PUSH = 0.05f;
-	private const float SPEED_DASH = 15;
-	private const float SPEED_NORMAL = 5f;
-	private const float SPEED_PUSH = 25f;
-
 	private CharacterController characterController;
 	private GameController gameController;
 
 	protected Text uiCurrentItemText;
 
-	protected int joystickIndex;
+	private int joystickIndex;
 
 	private bool xButtonCurrentlyPressed;
 	private bool xButtonPreviouslyPressed;
@@ -60,34 +54,39 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 
 		GameObject _gameControllerObj = GameObject.FindGameObjectWithTag ("GameController");
 		gameController = _gameControllerObj.GetComponent<GameController> ();
-		_gameControllerObj.GetComponent<InputHandler> ().AddInputListener (this, InputHandler.JOYSTICK_NAMES [joystickIndex]);
 
 		//
 		OnStart ();
+	}
+
+	public void Initialize (int joystickIndex)
+	{
+		this.joystickIndex = joystickIndex;
+		gameController.GetComponent<InputHandler> ().AddInputListener (this, InputHandler.JOYSTICK_NAMES [joystickIndex]);
 	}
 	
 	// Update is called once per frame
 	void Update ()
 	{
-		float _speed = SPEED_NORMAL;
+		float _speed = PlayerConstants.Instance.normal_speed;
 
 		if (isDashing) {
-			if (dashTimer >= TIME_DASH) {
+			if (dashTimer >= PlayerConstants.Instance.dash_duration) {
 				isDashing = false;
 			} else {
 				dashTimer += Time.deltaTime;
-				_speed = SPEED_DASH;
+				_speed = PlayerConstants.Instance.dash_speed;
 			}
 		}
 
 		Vector3 _motion = moveDirection * _speed;
 
 		if (isPushed) {
-			if (pushTimer >= TIME_PUSH) {
+			if (pushTimer >= PlayerConstants.Instance.push_duration) {
 				isPushed = false;
 			} else {
 				pushTimer += Time.deltaTime;
-				_motion += pushDirection * SPEED_PUSH;
+				_motion += pushDirection * PlayerConstants.Instance.push_speed;
 			}
 		}
 
@@ -209,9 +208,9 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 			uiCurrentItemText.text = "Item: None";
 			currentItem = null;
 			currentItemGO = null;
-		} else {
+		} /*else {
 			Debug.Log ("PlayerController: DropCurrentItem: called but item = null");
-		}
+		}*/
 	}
 
 	private void PickUpItem ()
