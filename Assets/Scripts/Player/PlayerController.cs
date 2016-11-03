@@ -9,24 +9,31 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 	private CharacterController characterController;
 	private GameController gameController;
 
+	// UI
 	protected Text uiCurrentItemText;
 
+	//
 	private int joystickIndex;
 
+	// Input
 	private bool xButtonCurrentlyPressed;
 	private bool xButtonPreviouslyPressed;
 	private bool aButtonCurrentlyPressed;
 	private bool aButtonPreviouslyPressed;
 
+	//
 	private bool isDashing;
 	private bool isPushed;
 
 	private float dashTimer;
 	private float pushTimer;
 
-	private Vector3 moveDirection;
-	private Vector3 pushDirection;
+	private Vector3 movement_acceleration;
+	private Vector3 movement_velocity;
+	private Vector3 dash_velocity;
+	private Vector3 push_velocity;
 
+	// Items
 	private Item currentItem;
 	private GameObject currentItemGO;
 	private List<Item> overlappingItems;
@@ -41,7 +48,10 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 
 	void Awake ()
 	{
-		moveDirection = new Vector3 ();
+		movement_acceleration = new Vector3 ();
+		movement_velocity = new Vector3 ();
+		dash_velocity = new Vector3 ();
+		push_velocity = new Vector3 ();
 
 		currentItem = null;
 		overlappingItems = new List<Item> ();
@@ -68,14 +78,15 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 	// Update is called once per frame
 	void Update ()
 	{
-		float _speed = PlayerConstants.Instance.normal_speed;
+		/*
+		float _speed = PlayerConstants.Instance.movement_speed;
 
 		if (isDashing) {
 			if (dashTimer >= PlayerConstants.Instance.dash_duration) {
 				isDashing = false;
 			} else {
 				dashTimer += Time.deltaTime;
-				_speed = PlayerConstants.Instance.dash_speed;
+				_speed = PlayerConstants.Instance.dash_velocity;
 			}
 		}
 
@@ -86,11 +97,46 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 				isPushed = false;
 			} else {
 				pushTimer += Time.deltaTime;
-				_motion += pushDirection * PlayerConstants.Instance.push_speed;
+				_motion += pushDirection * PlayerConstants.Instance.push_velocity;
 			}
 		}
 
 		characterController.Move (_motion * Time.deltaTime);
+		*/
+
+		Debug.Log ("PlayerController " + joystickIndex + ": Update: acceleration=" + movement_acceleration.ToString ());
+
+		Vector3 _totalVelocity = new Vector3 ();
+
+		//normal movement
+		if (!isDashing) {
+			movement_velocity *= 0.9f;
+			movement_velocity += movement_acceleration /** Time.deltaTime*/;
+			movement_velocity = Vector3.ClampMagnitude (movement_velocity, PlayerConstants.MOVEMENT_MAX_VELOCITY);
+			_totalVelocity += movement_velocity;
+			//Debug.Log ("PlayerController " + joystickIndex + ": Update: movementVelocity=" + movement_velocity.ToString ());
+		}
+		//dashing movement
+		else if (isDashing) {
+			if (dashTimer >= PlayerConstants.DASH_DURATION) {
+				isDashing = false;
+			} else {
+				dashTimer += Time.deltaTime;
+				_totalVelocity += dash_velocity;
+				//Debug.Log ("PlayerController " + joystickIndex + ": Update: dashVelocity=" + dash_velocity.ToString ());
+			}
+		}
+
+		if (isPushed) {
+			if (pushTimer >= PlayerConstants.PUSH_DURATION) {
+				isPushed = false;
+			} else {
+				pushTimer += Time.deltaTime;
+				_totalVelocity += push_velocity;
+			}
+		}
+
+		characterController.Move (_totalVelocity * Time.deltaTime);
 
 		//
 		OnUpdate ();
@@ -141,7 +187,7 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 
 	void IInputListener.OnHandleLeftStick (int joystickIndex, Vector2 stickState)
 	{
-		if (joystickIndex == this.joystickIndex && !isDashing) {
+		/*if (joystickIndex == this.joystickIndex && !isDashing) {
 			moveDirection.Set (0, 0, 0);
 
 			if (stickState.x != 0) {
@@ -153,6 +199,24 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 			}
 
 			moveDirection.Normalize ();
+		}*/
+
+		//Debug.Log ("PlayerController: OnHandleLeftStick: called");
+
+		if (joystickIndex == this.joystickIndex) {
+			//Debug.Log ("PlayerController " + joystickIndex + ": OnHandleLeftStick: called");
+
+			float _force = Mathf.Clamp (stickState.magnitude, 0f, 1f) * PlayerConstants.MOVEMENT_MAX_ACCELERATION;
+			//Debug.Log ("PlayerController " + joystickIndex + ": stickstate=" + stickState.ToString ());
+			//Debug.Log ("PlayerController " + joystickIndex + ": force=" + _force);
+
+			movement_acceleration.Set (0, 0, 0);
+
+			movement_acceleration.x = stickState.x;
+			movement_acceleration.z = stickState.y;
+
+			movement_acceleration.Normalize ();
+			movement_acceleration *= _force;
 		}
 	}
 
@@ -164,6 +228,7 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 		if (joystickIndex == this.joystickIndex && !xButtonPreviouslyPressed && xButtonCurrentlyPressed && !isDashing) {
 			isDashing = true;
 			dashTimer = 0f;
+			dash_velocity = movement_acceleration.normalized * PlayerConstants.DASH_VELOCITY;
 		}
 	}
 
@@ -190,7 +255,7 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 	{
 		isPushed = true;
 		pushTimer = 0f;
-		pushDirection = direction;
+		push_velocity = direction * PlayerConstants.PUSH_VELOCITY;
 
 		DropCurrentItem ();
 	}
@@ -203,7 +268,7 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 	{
 		if (currentItem != null) {
 			currentItemGO.SetActive (true);
-			currentItem.transform.position = this.transform.position + moveDirection;
+			currentItem.transform.position = this.transform.position;
 
 			uiCurrentItemText.text = "Item: None";
 			currentItem = null;
