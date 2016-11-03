@@ -51,13 +51,11 @@ public class InputHandler : MonoBehaviour
 			//######################################################################
 			// x button
 
-			float _xButton = Input.GetAxis (JOYSTICK_NAMES [_joystickIndex] + "_X_Button");
-			bool _xPressed = false;
+			bool _xPressed = Input.GetButton (JOYSTICK_NAMES [_joystickIndex] + "_X_Button");
 
-			if (_xButton > 0) {
-				_xPressed = true;
-				//Debug.Log ("InputHandler: Update: Joystick " + _joystickIndex + ": X Button pressed (" + _xButton + ")");
-			}
+			/*if (_xPressed) {
+				Debug.Log ("InputHandler: Update: Joystick " + _joystickIndex + ": X Button pressed (" + _xPressed + ")");
+			}*/
 
 			foreach (IInputListener listener in inputListeners[_joystickIndex]) {
 				listener.OnHandleXButton (_joystickIndex, _xPressed);

@@ -11,6 +11,7 @@ public class PlayerConstants : MonoBehaviour
 	[Header ("Dash")]
 	public float dash_duration;
 	public float dash_acceleration;
+	public float dash_cooldown;
 
 	[Header ("Push")]
 	public float push_duration;
@@ -27,6 +28,8 @@ public class PlayerConstants : MonoBehaviour
 	public static float DASH_DURATION{ get { return instance.dash_duration; } }
 
 	public static float DASH_VELOCITY{ get { return instance.dash_acceleration; } }
+
+	public static float DASH_COOLDOWN{ get { return instance.dash_cooldown; } }
 
 	public static float PUSH_DURATION{ get { return instance.push_duration; } }
 

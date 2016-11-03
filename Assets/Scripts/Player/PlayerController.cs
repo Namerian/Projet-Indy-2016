@@ -27,6 +27,7 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 
 	private float dashTimer;
 	private float pushTimer;
+	private float dashCooldown;
 
 	private Vector3 movement_acceleration;
 	private Vector3 dash_acceleration;
@@ -76,6 +77,10 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 		this.joystickIndex = joystickIndex;
 		gameController.GetComponent<InputHandler> ().AddInputListener (this, InputHandler.JOYSTICK_NAMES [joystickIndex]);
 	}
+
+	//########################################################################
+	// Update
+	//########################################################################
 	
 	// Update is called once per frame
 	void Update ()
@@ -86,6 +91,8 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 
 		//normal movement
 		if (!isDashing) {
+			dashCooldown = Mathf.Clamp (dashCooldown - Time.deltaTime, 0, PlayerConstants.DASH_COOLDOWN);
+
 			_totalAcceleration += movement_acceleration;
 			//Debug.Log ("PlayerController " + joystickIndex + ": Update: movementVelocity=" + movement_velocity.ToString ());
 		}
@@ -93,6 +100,7 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 		else if (isDashing) {
 			if (dashTimer >= PlayerConstants.DASH_DURATION) {
 				isDashing = false;
+				dashCooldown = PlayerConstants.DASH_COOLDOWN;
 			} else {
 				dashTimer += Time.deltaTime;
 				_totalAcceleration += dash_acceleration;
@@ -163,20 +171,6 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 
 	void IInputListener.OnHandleLeftStick (int joystickIndex, Vector2 stickState)
 	{
-		/*if (joystickIndex == this.joystickIndex && !isDashing) {
-			moveDirection.Set (0, 0, 0);
-
-			if (stickState.x != 0) {
-				moveDirection.x = stickState.x;
-			}
-
-			if (stickState.y != 0) {
-				moveDirection.z = stickState.y;
-			}
-
-			moveDirection.Normalize ();
-		}*/
-
 		//Debug.Log ("PlayerController: OnHandleLeftStick: called");
 
 		if (joystickIndex == this.joystickIndex) {
@@ -201,7 +195,7 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 		xButtonPreviouslyPressed = xButtonCurrentlyPressed;
 		xButtonCurrentlyPressed = pressed;
 
-		if (joystickIndex == this.joystickIndex && !xButtonPreviouslyPressed && xButtonCurrentlyPressed && !isDashing) {
+		if (joystickIndex == this.joystickIndex && !xButtonPreviouslyPressed && xButtonCurrentlyPressed && !isDashing && dashCooldown == 0) {
 			isDashing = true;
 			dashTimer = 0f;
 			dash_acceleration = movement_acceleration.normalized * PlayerConstants.DASH_VELOCITY;
@@ -249,9 +243,7 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 			uiCurrentItemText.text = "Item: None";
 			currentItem = null;
 			currentItemGO = null;
-		} /*else {
-			Debug.Log ("PlayerController: DropCurrentItem: called but item = null");
-		}*/
+		}
 	}
 
 	private void PickUpItem ()
@@ -266,4 +258,6 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 			currentItem.gameObject.SetActive (false);
 		}
 	}
+
+
 }
