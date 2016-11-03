@@ -6,6 +6,7 @@ using System.Collections.Generic;
 
 public abstract class PlayerController : MonoBehaviour, IInputListener
 {
+	//
 	private CharacterController characterController;
 	private GameController gameController;
 
@@ -25,6 +26,7 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 	private bool isDashing;
 	private bool isPushed;
 
+
 	private float dashTimer;
 	private float pushTimer;
 	private float dashCooldown;
@@ -40,6 +42,13 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 	private Item currentItem;
 	private GameObject currentItemGO;
 	private List<Item> overlappingItems;
+
+	//Death
+	private const float DEATH_FALL_SPEED_Y = -3f;
+	private const float RESPAWN_TIME = 3f;
+	private Vector3 spawnPosition;
+	private bool isDead;
+	private float respawnTimer;
 
 	//#############################################################################
 
@@ -68,6 +77,8 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 		GameObject _gameControllerObj = GameObject.FindGameObjectWithTag ("GameController");
 		gameController = _gameControllerObj.GetComponent<GameController> ();
 
+		spawnPosition = transform.position;
+
 		//
 		OnStart ();
 	}
@@ -85,6 +96,25 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 	// Update is called once per frame
 	void Update ()
 	{
+		//##################################
+		//death
+		if (!isDead) {
+			if (IsAboveVoid ()) {
+				isDead = true;
+				respawnTimer = 0f;
+			}
+		} else if (isDead) {
+			if (respawnTimer >= RESPAWN_TIME) {
+				Respawn ();
+			} else {
+				characterController.Move (new Vector3 (0, DEATH_FALL_SPEED_Y, 0) * Time.deltaTime);
+				respawnTimer += Time.deltaTime;
+			}
+		}
+
+		//#################################
+		//movement
+
 		//Debug.Log ("PlayerController " + joystickIndex + ": Update: acceleration=" + movement_acceleration.ToString ());
 
 		Vector3 _totalAcceleration = new Vector3 ();
@@ -96,8 +126,8 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 			_totalAcceleration += movement_acceleration;
 			//Debug.Log ("PlayerController " + joystickIndex + ": Update: movementVelocity=" + movement_velocity.ToString ());
 		}
-		//dashing movement
-		else if (isDashing) {
+			//dashing movement
+			else if (isDashing) {
 			if (dashTimer >= PlayerConstants.DASH_DURATION) {
 				isDashing = false;
 				dashCooldown = PlayerConstants.DASH_COOLDOWN;
@@ -122,7 +152,8 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 
 		characterController.Move (velocity * Time.deltaTime);
 
-		//
+
+		//##################################
 		OnUpdate ();
 	}
 
@@ -173,7 +204,7 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 	{
 		//Debug.Log ("PlayerController: OnHandleLeftStick: called");
 
-		if (joystickIndex == this.joystickIndex) {
+		if (joystickIndex == this.joystickIndex && !isDead) {
 			//Debug.Log ("PlayerController " + joystickIndex + ": OnHandleLeftStick: called");
 
 			float _force = Mathf.Clamp (stickState.magnitude, 0f, 1f) * PlayerConstants.MOVEMENT_MAX_ACCELERATION;
@@ -187,6 +218,8 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 
 			movement_acceleration.Normalize ();
 			movement_acceleration *= _force;
+		} else if (joystickIndex == this.joystickIndex && isDead) {
+			movement_acceleration *= 0.95f;
 		}
 	}
 
@@ -195,10 +228,12 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 		xButtonPreviouslyPressed = xButtonCurrentlyPressed;
 		xButtonCurrentlyPressed = pressed;
 
-		if (joystickIndex == this.joystickIndex && !xButtonPreviouslyPressed && xButtonCurrentlyPressed && !isDashing && dashCooldown == 0) {
-			isDashing = true;
-			dashTimer = 0f;
-			dash_acceleration = movement_acceleration.normalized * PlayerConstants.DASH_VELOCITY;
+		if (joystickIndex == this.joystickIndex && !isDead) {
+			if (!xButtonPreviouslyPressed && xButtonCurrentlyPressed && !isDashing && dashCooldown == 0) {
+				isDashing = true;
+				dashTimer = 0f;
+				dash_acceleration = movement_acceleration.normalized * PlayerConstants.DASH_VELOCITY;
+			}
 		}
 	}
 
@@ -207,18 +242,20 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 		aButtonPreviouslyPressed = aButtonCurrentlyPressed;
 		aButtonCurrentlyPressed = pressed;
 
-		if (joystickIndex == this.joystickIndex && !aButtonPreviouslyPressed && aButtonCurrentlyPressed && !isDashing && overlappingItems.Count > 0) {
-			DropCurrentItem ();
-			PickUpItem ();
-			//Debug.Log ("PlayerController: OnHandleAButton: should have picked up item");
-		} else if (joystickIndex == this.joystickIndex && !aButtonPreviouslyPressed && aButtonCurrentlyPressed && !isDashing) {
-			DropCurrentItem ();
-			//Debug.Log ("PlayerController: OnHandleAButton: should have dropped item");
+		if (joystickIndex == this.joystickIndex && !isDead) {
+			if (!aButtonPreviouslyPressed && aButtonCurrentlyPressed && !isDashing && overlappingItems.Count > 0) {
+				DropCurrentItem ();
+				PickUpItem ();
+				//Debug.Log ("PlayerController: OnHandleAButton: should have picked up item");
+			} else if (!aButtonPreviouslyPressed && aButtonCurrentlyPressed && !isDashing) {
+				DropCurrentItem ();
+				//Debug.Log ("PlayerController: OnHandleAButton: should have dropped item");
+			}
 		}
 	}
 
 	//########################################################################
-	//
+	// Public Methods
 	//########################################################################
 
 	public void Push (Vector3 direction)
@@ -231,7 +268,7 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 	}
 
 	//########################################################################
-	//
+	// Private Methods
 	//########################################################################
 
 	private void DropCurrentItem ()
@@ -259,5 +296,46 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 		}
 	}
 
+	private bool IsAboveVoid ()
+	{
+		Vector3 _position = transform.position;
+		float _radius = GetComponent<CapsuleCollider> ().radius;
+		Collider[] _colliders = Physics.OverlapBox (new Vector3 (_position.x, 0f, _position.z), new Vector3 (_radius, _radius, _radius));
 
+		bool isAboveFloor = false;
+		bool isAboveVoid = false;
+
+		foreach (Collider _collider in _colliders) {
+			if (_collider.tag == "Floor") {
+				isAboveFloor = true;
+			} else if (_collider.tag == "Void") {
+				isAboveVoid = true;
+			}
+		}
+
+		/*if (joystickIndex == 0) {
+			foreach (Collider _collider in _colliders) {
+				Debug.Log ("Collider tag=" + _collider.tag);
+			}
+			Debug.Log ("+++++++++++++++");
+		}*/
+
+		if (isAboveVoid && !isAboveFloor) {
+			return true;
+		}
+
+		return false;
+	}
+
+	private void Respawn ()
+	{
+		isDead = false;
+		isDashing = false;
+		isPushed = false;
+
+		transform.position = spawnPosition;
+
+		movement_acceleration.Set (0, 0, 0);
+		velocity.Set (0, 0, 0);
+	}
 }
