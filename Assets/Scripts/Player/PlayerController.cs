@@ -29,9 +29,11 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 	private float pushTimer;
 
 	private Vector3 movement_acceleration;
-	private Vector3 movement_velocity;
-	private Vector3 dash_velocity;
-	private Vector3 push_velocity;
+	private Vector3 dash_acceleration;
+	private Vector3 push_acceleration;
+
+	private Vector3 velocity;
+
 
 	// Items
 	private Item currentItem;
@@ -49,9 +51,9 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 	void Awake ()
 	{
 		movement_acceleration = new Vector3 ();
-		movement_velocity = new Vector3 ();
-		dash_velocity = new Vector3 ();
-		push_velocity = new Vector3 ();
+		velocity = new Vector3 ();
+		dash_acceleration = new Vector3 ();
+		push_acceleration = new Vector3 ();
 
 		currentItem = null;
 		overlappingItems = new List<Item> ();
@@ -78,42 +80,13 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 	// Update is called once per frame
 	void Update ()
 	{
-		/*
-		float _speed = PlayerConstants.Instance.movement_speed;
+		//Debug.Log ("PlayerController " + joystickIndex + ": Update: acceleration=" + movement_acceleration.ToString ());
 
-		if (isDashing) {
-			if (dashTimer >= PlayerConstants.Instance.dash_duration) {
-				isDashing = false;
-			} else {
-				dashTimer += Time.deltaTime;
-				_speed = PlayerConstants.Instance.dash_velocity;
-			}
-		}
-
-		Vector3 _motion = moveDirection * _speed;
-
-		if (isPushed) {
-			if (pushTimer >= PlayerConstants.Instance.push_duration) {
-				isPushed = false;
-			} else {
-				pushTimer += Time.deltaTime;
-				_motion += pushDirection * PlayerConstants.Instance.push_velocity;
-			}
-		}
-
-		characterController.Move (_motion * Time.deltaTime);
-		*/
-
-		Debug.Log ("PlayerController " + joystickIndex + ": Update: acceleration=" + movement_acceleration.ToString ());
-
-		Vector3 _totalVelocity = new Vector3 ();
+		Vector3 _totalAcceleration = new Vector3 ();
 
 		//normal movement
 		if (!isDashing) {
-			movement_velocity *= 0.9f;
-			movement_velocity += movement_acceleration /** Time.deltaTime*/;
-			movement_velocity = Vector3.ClampMagnitude (movement_velocity, PlayerConstants.MOVEMENT_MAX_VELOCITY);
-			_totalVelocity += movement_velocity;
+			_totalAcceleration += movement_acceleration;
 			//Debug.Log ("PlayerController " + joystickIndex + ": Update: movementVelocity=" + movement_velocity.ToString ());
 		}
 		//dashing movement
@@ -122,7 +95,7 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 				isDashing = false;
 			} else {
 				dashTimer += Time.deltaTime;
-				_totalVelocity += dash_velocity;
+				_totalAcceleration += dash_acceleration;
 				//Debug.Log ("PlayerController " + joystickIndex + ": Update: dashVelocity=" + dash_velocity.ToString ());
 			}
 		}
@@ -132,11 +105,14 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 				isPushed = false;
 			} else {
 				pushTimer += Time.deltaTime;
-				_totalVelocity += push_velocity;
+				_totalAcceleration += push_acceleration;
 			}
 		}
 
-		characterController.Move (_totalVelocity * Time.deltaTime);
+		velocity += _totalAcceleration - PlayerConstants.MOVEMENT_FRICTION * velocity;
+		velocity = Vector3.ClampMagnitude (velocity, PlayerConstants.MOVEMENT_MAX_VELOCITY);
+
+		characterController.Move (velocity * Time.deltaTime);
 
 		//
 		OnUpdate ();
@@ -228,7 +204,7 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 		if (joystickIndex == this.joystickIndex && !xButtonPreviouslyPressed && xButtonCurrentlyPressed && !isDashing) {
 			isDashing = true;
 			dashTimer = 0f;
-			dash_velocity = movement_acceleration.normalized * PlayerConstants.DASH_VELOCITY;
+			dash_acceleration = movement_acceleration.normalized * PlayerConstants.DASH_VELOCITY;
 		}
 	}
 
@@ -255,7 +231,7 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 	{
 		isPushed = true;
 		pushTimer = 0f;
-		push_velocity = direction * PlayerConstants.PUSH_VELOCITY;
+		push_acceleration = direction * PlayerConstants.PUSH_VELOCITY;
 
 		DropCurrentItem ();
 	}

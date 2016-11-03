@@ -4,17 +4,17 @@ using System.Collections;
 public class PlayerConstants : MonoBehaviour
 {
 	[Header ("Movement")]
-	public float movement_speed;
 	public float movement_max_acceleration;
 	public float movement_max_velocity;
+	public float movement_friction;
 
 	[Header ("Dash")]
 	public float dash_duration;
-	public float dash_velocity;
+	public float dash_acceleration;
 
 	[Header ("Push")]
 	public float push_duration;
-	public float push_velocity;
+	public float push_acceleration;
 
 	//###########################################################
 
@@ -22,13 +22,15 @@ public class PlayerConstants : MonoBehaviour
 
 	public static float MOVEMENT_MAX_VELOCITY{ get { return instance.movement_max_velocity; } }
 
+	public static float MOVEMENT_FRICTION{ get { return instance.movement_friction; } }
+
 	public static float DASH_DURATION{ get { return instance.dash_duration; } }
 
-	public static float DASH_VELOCITY{ get { return instance.dash_velocity; } }
+	public static float DASH_VELOCITY{ get { return instance.dash_acceleration; } }
 
 	public static float PUSH_DURATION{ get { return instance.push_duration; } }
 
-	public static float PUSH_VELOCITY{ get { return instance.push_velocity; } }
+	public static float PUSH_VELOCITY{ get { return instance.push_acceleration; } }
 
 	//###########################################################
 
