@@ -13,12 +13,13 @@ public class PlayerConstants : MonoBehaviour
 	public float dash_acceleration;
 	public float dash_cooldown;
 
-	[Header ("Push")]
-	public float push_duration;
-	public float push_acceleration;
+	[Header ("Bump")]
+	public float bump_duration;
+	public float bump_acceleration;
 
 	[Header ("Death")]
 	public float respawn_cooldown;
+	public float fall_acceleration;
 
 	//###########################################################
 
@@ -34,11 +35,13 @@ public class PlayerConstants : MonoBehaviour
 
 	public static float DASH_COOLDOWN{ get { return instance.dash_cooldown; } }
 
-	public static float PUSH_DURATION{ get { return instance.push_duration; } }
+	public static float BUMP_DURATION{ get { return instance.bump_duration; } }
 
-	public static float PUSH_VELOCITY{ get { return instance.push_acceleration; } }
+	public static float BUMP_VELOCITY{ get { return instance.bump_acceleration; } }
 
 	public static float RESPAWN_COOLDOWN{ get { return instance.respawn_cooldown; } }
+
+	public static float FALL_ACCELERATION{ get { return instance.fall_acceleration; } }
 
 	//###########################################################
 

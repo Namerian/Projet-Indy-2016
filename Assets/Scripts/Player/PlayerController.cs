@@ -24,16 +24,16 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 
 	//
 	private bool isDashing;
-	private bool isPushed;
+	private bool isBumped;
 
 
 	private float dashTimer;
-	private float pushTimer;
+	private float bumpTimer;
 	private float dashCooldown;
 
-	private Vector3 movement_acceleration;
-	private Vector3 dash_acceleration;
-	private Vector3 push_acceleration;
+	private Vector3 movementAcceleration;
+	private Vector3 dashAcceleration;
+	private Vector3 bumpAcceleration;
 
 	private Vector3 velocity;
 
@@ -43,8 +43,6 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 	private List<Item> overlappingItems;
 
 	//Death
-	private const float DEATH_FALL_SPEED_Y = -6f;
-	//private const float RESPAWN_TIME = 3f;
 	private Vector3 spawnPosition;
 	private bool isDead;
 	private float respawnTimer;
@@ -59,10 +57,10 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 
 	void Awake ()
 	{
-		movement_acceleration = new Vector3 ();
+		movementAcceleration = new Vector3 ();
 		velocity = new Vector3 ();
-		dash_acceleration = new Vector3 ();
-		push_acceleration = new Vector3 ();
+		dashAcceleration = new Vector3 ();
+		bumpAcceleration = new Vector3 ();
 
 		currentItem = null;
 		overlappingItems = new List<Item> ();
@@ -103,13 +101,19 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 				respawnTimer = 0f;
 
 				isDashing = false;
-				isPushed = false;
+				isBumped = false;
 
-				movement_acceleration.Set (0, DEATH_FALL_SPEED_Y, 0);
+				movementAcceleration.Set (0, -PlayerConstants.FALL_ACCELERATION, 0);
 			}
 		} else if (isDead) {
 			if (respawnTimer >= PlayerConstants.RESPAWN_COOLDOWN) {
-				Respawn ();
+				isDead = false;
+
+				transform.position = spawnPosition;
+				transform.forward = new Vector3 (0, 0, 1);
+
+				movementAcceleration.Set (0, 0, 0);
+				velocity.Set (0, 0, 0);
 			} else {
 				respawnTimer += Time.deltaTime;
 			}
@@ -126,7 +130,7 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 		if (!isDashing) {
 			dashCooldown = Mathf.Clamp (dashCooldown - Time.deltaTime, 0, PlayerConstants.DASH_COOLDOWN);
 
-			_totalAcceleration += movement_acceleration;
+			_totalAcceleration += movementAcceleration;
 			//Debug.Log ("PlayerController " + joystickIndex + ": Update: movementVelocity=" + movement_velocity.ToString ());
 		}
 			//dashing movement
@@ -136,17 +140,17 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 				dashCooldown = PlayerConstants.DASH_COOLDOWN;
 			} else {
 				dashTimer += Time.deltaTime;
-				_totalAcceleration += dash_acceleration;
+				_totalAcceleration += dashAcceleration;
 				//Debug.Log ("PlayerController " + joystickIndex + ": Update: dashVelocity=" + dash_velocity.ToString ());
 			}
 		}
 
-		if (isPushed) {
-			if (pushTimer >= PlayerConstants.PUSH_DURATION) {
-				isPushed = false;
+		if (isBumped) {
+			if (bumpTimer >= PlayerConstants.BUMP_DURATION) {
+				isBumped = false;
 			} else {
-				pushTimer += Time.deltaTime;
-				_totalAcceleration += push_acceleration;
+				bumpTimer += Time.deltaTime;
+				_totalAcceleration += bumpAcceleration;
 			}
 		}
 
@@ -170,13 +174,15 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 
 	void OnControllerColliderHit (ControllerColliderHit hit)
 	{
-		if (hit.gameObject.tag == "Player" && isDashing) {
-			PlayerController _otherPlayer = hit.gameObject.GetComponent<PlayerController> ();
-			Vector3 _pushDirection = _otherPlayer.transform.position - this.transform.position;
-			_pushDirection.Normalize ();
-			_otherPlayer.Push (_pushDirection);
+		if (!isDead) {
+			if (hit.gameObject.tag == "Player" && (isDashing || isBumped)) {
+				PlayerController _otherPlayer = hit.gameObject.GetComponent<PlayerController> ();
+				Vector3 _pushDirection = _otherPlayer.transform.position - this.transform.position;
+				_pushDirection.Normalize ();
+				_otherPlayer.Bump (_pushDirection);
 
-			isDashing = false;
+				isDashing = false;
+			}
 		}
 	}
 
@@ -218,13 +224,13 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 			//Debug.Log ("PlayerController " + joystickIndex + ": stickstate=" + stickState.ToString ());
 			//Debug.Log ("PlayerController " + joystickIndex + ": force=" + _force);
 
-			movement_acceleration.Set (0, 0, 0);
+			movementAcceleration.Set (0, 0, 0);
 
-			movement_acceleration.x = stickState.x;
-			movement_acceleration.z = stickState.y;
+			movementAcceleration.x = stickState.x;
+			movementAcceleration.z = stickState.y;
 
-			movement_acceleration.Normalize ();
-			movement_acceleration *= _force;
+			movementAcceleration.Normalize ();
+			movementAcceleration *= _force;
 		}
 	}
 
@@ -237,7 +243,7 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 			if (!xButtonPreviouslyPressed && xButtonCurrentlyPressed && !isDashing && dashCooldown == 0) {
 				isDashing = true;
 				dashTimer = 0f;
-				dash_acceleration = movement_acceleration.normalized * PlayerConstants.DASH_VELOCITY;
+				dashAcceleration = movementAcceleration.normalized * PlayerConstants.DASH_VELOCITY;
 			}
 		}
 	}
@@ -263,11 +269,11 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 	// Public Methods
 	//########################################################################
 
-	public void Push (Vector3 direction)
+	public void Bump (Vector3 direction)
 	{
-		isPushed = true;
-		pushTimer = 0f;
-		push_acceleration = direction * PlayerConstants.PUSH_VELOCITY;
+		isBumped = true;
+		bumpTimer = 0f;
+		bumpAcceleration = direction * PlayerConstants.BUMP_VELOCITY;
 
 		DropCurrentItem ();
 	}
@@ -330,18 +336,5 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 		}
 
 		return false;
-	}
-
-	private void Respawn ()
-	{
-		isDead = false;
-		isDashing = false;
-		isPushed = false;
-
-		transform.position = spawnPosition;
-		transform.forward = new Vector3 (0, 0, 1);
-
-		movement_acceleration.Set (0, 0, 0);
-		velocity.Set (0, 0, 0);
 	}
 }
