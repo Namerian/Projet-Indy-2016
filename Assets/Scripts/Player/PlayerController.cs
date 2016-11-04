@@ -43,7 +43,7 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 	private List<Item> overlappingItems;
 
 	//Death
-	private const float DEATH_FALL_SPEED_Y = -3f;
+	private const float DEATH_FALL_SPEED_Y = -6f;
 	//private const float RESPAWN_TIME = 3f;
 	private Vector3 spawnPosition;
 	private bool isDead;
@@ -101,13 +101,16 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 			if (IsAboveVoid ()) {
 				isDead = true;
 				respawnTimer = 0f;
-				characterController.Move (new Vector3 (0, -0.25f, 0));
+
+				isDashing = false;
+				isPushed = false;
+
+				movement_acceleration.Set (0, DEATH_FALL_SPEED_Y, 0);
 			}
 		} else if (isDead) {
 			if (respawnTimer >= PlayerConstants.RESPAWN_COOLDOWN) {
 				Respawn ();
 			} else {
-				characterController.Move (new Vector3 (0, DEATH_FALL_SPEED_Y, 0) * Time.deltaTime);
 				respawnTimer += Time.deltaTime;
 			}
 		}
@@ -152,7 +155,7 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 
 		characterController.Move (velocity * Time.deltaTime);
 
-		if (velocity.normalized.magnitude != 0) {
+		if (velocity.normalized.magnitude != 0 && !isDead) {
 			//transform.rotation = Quaternion.LookRotation (velocity.normalized);
 			transform.forward = velocity.normalized;
 		}
@@ -222,8 +225,6 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 
 			movement_acceleration.Normalize ();
 			movement_acceleration *= _force;
-		} else if (joystickIndex == this.joystickIndex && isDead) {
-			movement_acceleration *= 0.95f;
 		}
 	}
 
@@ -338,6 +339,7 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 		isPushed = false;
 
 		transform.position = spawnPosition;
+		transform.forward = new Vector3 (0, 0, 1);
 
 		movement_acceleration.Set (0, 0, 0);
 		velocity.Set (0, 0, 0);
