@@ -17,6 +17,9 @@ public class PlayerConstants : MonoBehaviour
 	public float push_duration;
 	public float push_acceleration;
 
+	[Header ("Death")]
+	public float respawn_cooldown;
+
 	//###########################################################
 
 	public static float MOVEMENT_MAX_ACCELERATION{ get { return instance.movement_max_acceleration; } }
@@ -34,6 +37,8 @@ public class PlayerConstants : MonoBehaviour
 	public static float PUSH_DURATION{ get { return instance.push_duration; } }
 
 	public static float PUSH_VELOCITY{ get { return instance.push_acceleration; } }
+
+	public static float RESPAWN_COOLDOWN{ get { return instance.respawn_cooldown; } }
 
 	//###########################################################
 

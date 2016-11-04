@@ -44,7 +44,7 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 
 	//Death
 	private const float DEATH_FALL_SPEED_Y = -3f;
-	private const float RESPAWN_TIME = 3f;
+	//private const float RESPAWN_TIME = 3f;
 	private Vector3 spawnPosition;
 	private bool isDead;
 	private float respawnTimer;
@@ -104,7 +104,7 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 				characterController.Move (new Vector3 (0, -0.25f, 0));
 			}
 		} else if (isDead) {
-			if (respawnTimer >= RESPAWN_TIME) {
+			if (respawnTimer >= PlayerConstants.RESPAWN_COOLDOWN) {
 				Respawn ();
 			} else {
 				characterController.Move (new Vector3 (0, DEATH_FALL_SPEED_Y, 0) * Time.deltaTime);
