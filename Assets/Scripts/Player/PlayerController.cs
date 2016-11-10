@@ -57,7 +57,12 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 
 	void Awake ()
 	{
-		movementAcceleration = new Vector3 ();
+        characterController = GetComponent<CharacterController>();
+
+        GameObject _gameControllerObj = GameObject.FindGameObjectWithTag("GameController");
+        gameController = _gameControllerObj.GetComponent<GameController>();
+
+        movementAcceleration = new Vector3 ();
 		velocity = new Vector3 ();
 		dashAcceleration = new Vector3 ();
 		bumpAcceleration = new Vector3 ();
@@ -69,11 +74,6 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 	// Use this for initialization
 	void Start ()
 	{
-		characterController = GetComponent<CharacterController> ();
-
-		GameObject _gameControllerObj = GameObject.FindGameObjectWithTag ("GameController");
-		gameController = _gameControllerObj.GetComponent<GameController> ();
-
 		spawnPosition = transform.position;
 
 		//
