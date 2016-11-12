@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class MA_random : MonoBehaviour {
+public class RandomActivation : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {

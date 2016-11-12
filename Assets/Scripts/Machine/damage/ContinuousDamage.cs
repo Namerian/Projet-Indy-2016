@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class MachineInteraction : MonoBehaviour {
+public class ContinuousDamage : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {

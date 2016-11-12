@@ -37,14 +37,14 @@ public class GameController : MonoBehaviour, IMissionListener
 	// Update is called once per frame
 	void Update ()
 	{
-		if (currentMission == null && Input.GetKeyDown (KeyCode.E)) {
+		/*if (currentMission == null && Input.GetKeyDown (KeyCode.E)) {
 			currentMission = new Mission ();
 			currentMission.AddListener (this);
 			missionViewObject.GetComponent<MissionTimerPanelView> ().Initialize (currentMission);
 			currentMission.Start ();
 		} else if (currentMission != null) {
 			currentMission.Update ();
-		}
+		}*/
 	}
 
 	//==========================================================================================================

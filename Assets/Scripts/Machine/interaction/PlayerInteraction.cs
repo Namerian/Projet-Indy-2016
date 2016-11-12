@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class MachineActivation : MonoBehaviour {
+public class PlayerInteraction : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
