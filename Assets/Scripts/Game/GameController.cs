@@ -2,21 +2,29 @@
 using System.Collections;
 using System;
 
-public class GameController : MonoBehaviour, IMissionListener
+public class GameController : MonoBehaviour
 {
+	public float gameTimer{ get; private set; }
+
+	public float shipHealth{ get; private set; }
+
+	private bool isGameRunning;
+
 	private PlayerController redPlayer;
 	private PlayerController greenPlayer;
 	private PlayerController bluePlayer;
 	private PlayerController yellowPlayer;
 
-	private GameObject missionViewObject;
+	private GameStateUIView gameStateUI;
 
-	private Mission currentMission;
+	//==========================================================================================================
+	//
+	//==========================================================================================================
 
 	void Awake ()
 	{
 		//UI
-		missionViewObject = GameObject.Find ("UI/InGameUI/MissionUI/MissionTimerPanel");
+		gameStateUI = GameObject.Find ("UI/InGameUI/GameStateUI").GetComponent<GameStateUIView> ();
 
 		//Players
 		redPlayer = GameObject.Find ("PlayerHolder/RedPlayer").GetComponent<PlayerController> ();
@@ -32,35 +40,40 @@ public class GameController : MonoBehaviour, IMissionListener
 		greenPlayer.Initialize (1);
 		bluePlayer.Initialize (2);
 		yellowPlayer.Initialize (3);
+
+		gameTimer = 20f;
+		shipHealth = 100f;
+		isGameRunning = true;
 	}
 
 	// Update is called once per frame
 	void Update ()
 	{
-		/*if (currentMission == null && Input.GetKeyDown (KeyCode.E)) {
-			currentMission = new Mission ();
-			currentMission.AddListener (this);
-			missionViewObject.GetComponent<MissionTimerPanelView> ().Initialize (currentMission);
-			currentMission.Start ();
-		} else if (currentMission != null) {
-			currentMission.Update ();
-		}*/
+		if (isGameRunning) {
+			if (shipHealth <= 0 || gameTimer <= 0) {
+				isGameRunning = false;
+
+				bool gameWon = false;
+				if (shipHealth > 0) {
+					gameWon = true;
+				}
+				gameStateUI.ActivateGameResultView (gameWon);
+			} else {
+				gameTimer = Mathf.Clamp (gameTimer - Time.deltaTime, 0f, float.MaxValue);
+			}
+		}
 	}
 
 	//==========================================================================================================
-	// IMissionListener Implementation
+	//
 	//==========================================================================================================
 
-	void IMissionListener.OnMissionStarted (Mission mission)
-	{
-	}
+	public bool isPaused{ get { return !isGameRunning; } }
 
-	void IMissionListener.OnTimerUpdated (Mission mission)
+	public void ApplyDamageToShip (float damage)
 	{
-	}
-
-	void IMissionListener.OnMissionEnded (Mission mission)
-	{
-		currentMission = null;
+		if (damage > 0 && shipHealth > 0) {
+			shipHealth -= damage;
+		}
 	}
 }
