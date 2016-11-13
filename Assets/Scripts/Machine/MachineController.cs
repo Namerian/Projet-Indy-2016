@@ -6,16 +6,19 @@ public class MachineController : MonoBehaviour
 {
 	public enum MachineState
 	{
+		//waiting to be activated
 		Idle,
-		Danger,
+		//active: does damage and can be repaired
 		Active,
+		//is idle but can not be activated again
 		Destroyed
 	}
 
-	public MachineState state{ get; private set; }
+	public MachineState currentState{ get; private set; }
+
+	private GameController gameController;
 
 	private bool isStarted;
-
 	private List<IMachineListener> listeners;
 
 	//==========================================================================
@@ -24,13 +27,15 @@ public class MachineController : MonoBehaviour
 
 	void Awake ()
 	{
-		state = MachineState.Idle;
+		currentState = MachineState.Idle;
 		listeners = new List<IMachineListener> ();
 	}
 
 	// Use this for initialization
 	void Start ()
 	{
+		gameController = GameObject.FindWithTag ("GameController").GetComponent<GameController> ();
+
 		isStarted = true;
 	}
 	
@@ -57,8 +62,21 @@ public class MachineController : MonoBehaviour
 
 	public void SetState (MachineState state)
 	{
-		if (isStarted) {
+		if (isStarted && !gameController.isPaused) {
+			if (state != currentState) {
+				currentState = state;
 
+				Debug.Log ("MachineController: SetState: changed state to " + currentState.ToString ());
+
+				OnStateChange ();
+			}
+		}
+	}
+
+	private void OnStateChange ()
+	{
+		foreach (IMachineListener listener in listeners) {
+			listener.OnStateChange (currentState);
 		}
 	}
 }

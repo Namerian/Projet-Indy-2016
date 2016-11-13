@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
-using System.Collections;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 
 public class GameController : MonoBehaviour
 {
@@ -17,6 +18,9 @@ public class GameController : MonoBehaviour
 
 	private GameStateUIView gameStateUI;
 
+	private List<RandomActivation> machineRandomActivators;
+	private float machineActivationTimer;
+
 	//==========================================================================================================
 	//
 	//==========================================================================================================
@@ -31,6 +35,9 @@ public class GameController : MonoBehaviour
 		greenPlayer = GameObject.Find ("PlayerHolder/GreenPlayer").GetComponent<PlayerController> ();
 		bluePlayer = GameObject.Find ("PlayerHolder/BluePlayer").GetComponent<PlayerController> ();
 		yellowPlayer = GameObject.Find ("PlayerHolder/YellowPlayer").GetComponent<PlayerController> ();
+
+		//
+		machineRandomActivators = new List<RandomActivation> ();
 	}
 
 	// Use this for initialization
@@ -44,6 +51,7 @@ public class GameController : MonoBehaviour
 		gameTimer = 20f;
 		shipHealth = 100f;
 		isGameRunning = true;
+		machineActivationTimer = 4f;
 	}
 
 	// Update is called once per frame
@@ -53,13 +61,41 @@ public class GameController : MonoBehaviour
 			if (shipHealth <= 0 || gameTimer <= 0) {
 				isGameRunning = false;
 
-				bool gameWon = false;
+				bool _gameWon = false;
 				if (shipHealth > 0) {
-					gameWon = true;
+					_gameWon = true;
 				}
-				gameStateUI.ActivateGameResultView (gameWon);
+				gameStateUI.ActivateGameResultView (_gameWon);
 			} else {
+				//update game timer
 				gameTimer = Mathf.Clamp (gameTimer - Time.deltaTime, 0f, float.MaxValue);
+
+				//machine activation
+				machineActivationTimer = Mathf.Clamp (machineActivationTimer - Time.deltaTime, 0f, float.MaxValue);
+				if (machineActivationTimer == 0) {
+					int _sumOfWeights = 0;
+					foreach (RandomActivation activator in machineRandomActivators) {
+						_sumOfWeights += activator.weight;
+					}
+
+					if (_sumOfWeights > 0) {
+						RandomActivation _selectedActivator = null;
+						int _currentWeight = 0;
+						int _randomNumber = UnityEngine.Random.Range (0, _sumOfWeights);
+						foreach (RandomActivation activator in machineRandomActivators) {
+							_currentWeight += activator.weight;
+							if (_currentWeight > _randomNumber) {
+								_selectedActivator = activator;
+							}
+						}
+
+						if (_selectedActivator != null) {
+							_selectedActivator.Activate ();
+						}
+					}
+
+					machineActivationTimer = UnityEngine.Random.Range (1f, 5f);
+				}
 			}
 		}
 	}
@@ -75,5 +111,17 @@ public class GameController : MonoBehaviour
 		if (damage > 0 && shipHealth > 0) {
 			shipHealth -= damage;
 		}
+	}
+
+	public void AddMachineRandomActivator (RandomActivation activator)
+	{
+		if (!machineRandomActivators.Contains (activator)) {
+			machineRandomActivators.Add (activator);
+		}
+	}
+
+	public void RemoveMachineRandomActivator (RandomActivation activator)
+	{
+		machineRandomActivators.Remove (activator);
 	}
 }
