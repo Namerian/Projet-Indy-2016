@@ -48,7 +48,7 @@ public class GameController : MonoBehaviour
 		bluePlayer.Initialize (2);
 		yellowPlayer.Initialize (3);
 
-		gameTimer = 20f;
+		gameTimer = 40f;
 		shipHealth = 100f;
 		isGameRunning = true;
 		machineActivationTimer = 4f;
@@ -72,6 +72,7 @@ public class GameController : MonoBehaviour
 
 				//machine activation
 				machineActivationTimer = Mathf.Clamp (machineActivationTimer - Time.deltaTime, 0f, float.MaxValue);
+
 				if (machineActivationTimer == 0) {
 					int _sumOfWeights = 0;
 					foreach (RandomActivation activator in machineRandomActivators) {
@@ -86,6 +87,7 @@ public class GameController : MonoBehaviour
 							_currentWeight += activator.weight;
 							if (_currentWeight > _randomNumber) {
 								_selectedActivator = activator;
+								break;
 							}
 						}
 
@@ -94,7 +96,7 @@ public class GameController : MonoBehaviour
 						}
 					}
 
-					machineActivationTimer = UnityEngine.Random.Range (1f, 5f);
+					machineActivationTimer = UnityEngine.Random.Range (4f, 8f);
 				}
 			}
 		}
@@ -116,12 +118,14 @@ public class GameController : MonoBehaviour
 	public void AddMachineRandomActivator (RandomActivation activator)
 	{
 		if (!machineRandomActivators.Contains (activator)) {
+			Debug.Log ("GameController: AddMachineRandomActivator: machineName=" + activator.gameObject.name);
 			machineRandomActivators.Add (activator);
 		}
 	}
 
 	public void RemoveMachineRandomActivator (RandomActivation activator)
 	{
+		Debug.Log ("GameController: RemoveMachineRandomActivator: machineName=" + activator.gameObject.name);
 		machineRandomActivators.Remove (activator);
 	}
 }

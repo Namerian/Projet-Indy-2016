@@ -65,9 +65,6 @@ public class MachineController : MonoBehaviour
 		if (isStarted && !gameController.isPaused) {
 			if (state != currentState) {
 				currentState = state;
-
-				Debug.Log ("MachineController: SetState: changed state to " + currentState.ToString ());
-
 				OnStateChange ();
 			}
 		}

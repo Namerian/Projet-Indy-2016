@@ -4,7 +4,12 @@ using System.Collections.Generic;
 
 public class InputHandler : MonoBehaviour
 {
-	public static readonly string[] JOYSTICK_NAMES = { "Joystick_1", "Joystick_2", "Joystick_3", "Joystick_4" };
+	public static readonly string[] JOYSTICK_NAMES = {
+		"Joystick_1",
+		"Joystick_2",
+		"Joystick_3",
+		"Joystick_4"
+	};
 
 	private List<IInputListener>[] inputListeners;
 
@@ -73,6 +78,20 @@ public class InputHandler : MonoBehaviour
 
 			foreach (IInputListener listener in inputListeners[_joystickIndex]) {
 				listener.OnHandleAButton (_joystickIndex, _aPressed);
+			}
+
+			//######################################################################
+			// b button
+
+			float _bButton = Input.GetAxis (JOYSTICK_NAMES [_joystickIndex] + "_B_Button");
+			bool _bPressed = false;
+
+			if (_bButton > 0) {
+				_bPressed = true;
+			}
+
+			foreach (IInputListener listener in inputListeners[_joystickIndex]) {
+				listener.OnHandleBButton (_joystickIndex, _bPressed);
 			}
 		}
 	}

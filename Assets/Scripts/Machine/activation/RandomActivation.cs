@@ -15,6 +15,7 @@ public class RandomActivation : MonoBehaviour, IMachineListener
 		machineController = GetComponent<MachineController> ();
 
 		gameController.AddMachineRandomActivator (this);
+		machineController.AddListener (this);
 	}
 	
 	// Update is called once per frame
@@ -31,8 +32,10 @@ public class RandomActivation : MonoBehaviour, IMachineListener
 		}
 	}
 
-	public void OnStateChange (MachineController.MachineState state)
+	void IMachineListener.OnStateChange (MachineController.MachineState state)
 	{
+		Debug.Log ("RandomActivation: OnStateChange: state=" + state.ToString ());
+
 		if (state == MachineController.MachineState.Idle) {
 			gameController.AddMachineRandomActivator (this);
 		}

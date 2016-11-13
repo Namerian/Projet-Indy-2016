@@ -8,4 +8,6 @@ public interface IInputListener
 	void OnHandleXButton (int joystickIndex, bool pressed);
 
 	void OnHandleAButton (int joystickIndex, bool pressed);
+
+	void OnHandleBButton (int joystickIndex, bool pressed);
 }

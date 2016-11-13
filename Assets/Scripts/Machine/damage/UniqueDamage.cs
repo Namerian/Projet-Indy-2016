@@ -45,6 +45,7 @@ public class UniqueDamage : MonoBehaviour, IMachineListener
 			isActive = true;
 		} else {
 			isActive = false;
+			timer = 0f;
 		}
 	}
 }

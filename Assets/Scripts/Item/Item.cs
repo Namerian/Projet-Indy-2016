@@ -1,23 +1,35 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public abstract class Item : MonoBehaviour
+public class Item : MonoBehaviour
 {
-	public string itemName{ protected set; get; }
+	public string[] itemCategories;
+	public string itemName;
 
-	protected abstract void OnStart ();
-
-	protected abstract void OnUpdate ();
+	private Collider itemCollider;
+	private MeshRenderer itemRenderer;
 
 	// Use this for initialization
 	void Start ()
 	{
-		OnStart ();
+		itemCollider = GetComponent<Collider> ();
+		itemRenderer = GetComponent<MeshRenderer> ();
 	}
 	
 	// Update is called once per frame
 	void Update ()
 	{
-		OnUpdate ();
+	}
+
+	public void OnPickUp ()
+	{
+		itemCollider.enabled = false;
+		itemRenderer.enabled = false;
+	}
+
+	public void OnDrop ()
+	{
+		itemCollider.enabled = true;
+		itemRenderer.enabled = true;
 	}
 }

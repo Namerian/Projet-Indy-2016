@@ -36,6 +36,8 @@ public class ActiveIcon : MonoBehaviour, IMachineListener
 			Vector3 _targetScreenPosition = Camera.main.WorldToScreenPoint (_targetWorldPosition) - uiIconHolder.transform.position;
 
 			icon.transform.Translate (_targetScreenPosition);
+		} else {
+			Destroy (icon);
 		}
 	}
 
