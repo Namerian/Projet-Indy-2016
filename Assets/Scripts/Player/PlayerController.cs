@@ -21,6 +21,8 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 	private bool xButtonPreviouslyPressed;
 	private bool aButtonCurrentlyPressed;
 	private bool aButtonPreviouslyPressed;
+	private bool bButtonCurrentlyPressed;
+	private bool bButtonPreviouslyPressed;
 
 	//
 	private bool isDashing;
@@ -38,7 +40,8 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 	private Vector3 velocity;
 
 	// Items
-	private Item currentItem;
+	public Item currentItem{ get; private set; }
+
 	private GameObject currentItemGO;
 	private List<Item> overlappingItems;
 
@@ -46,6 +49,10 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 	private Vector3 spawnPosition;
 	private bool isDead;
 	private float respawnTimer;
+
+	//Machines
+	private MachinePlayerInteraction currentMachine;
+	private bool isInteracting;
 
 	//#############################################################################
 
@@ -57,12 +64,12 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 
 	void Awake ()
 	{
-        characterController = GetComponent<CharacterController>();
+		characterController = GetComponent<CharacterController> ();
 
-        GameObject _gameControllerObj = GameObject.FindGameObjectWithTag("GameController");
-        gameController = _gameControllerObj.GetComponent<GameController>();
+		GameObject _gameControllerObj = GameObject.FindGameObjectWithTag ("GameController");
+		gameController = _gameControllerObj.GetComponent<GameController> ();
 
-        movementAcceleration = new Vector3 ();
+		movementAcceleration = new Vector3 ();
 		velocity = new Vector3 ();
 		dashAcceleration = new Vector3 ();
 		bumpAcceleration = new Vector3 ();
@@ -86,14 +93,14 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 		gameController.GetComponent<InputHandler> ().AddInputListener (this, InputHandler.JOYSTICK_NAMES [joystickIndex]);
 	}
 
-	//########################################################################
+	//######################################################################################################
 	// Update
-	//########################################################################
+	//######################################################################################################
 	
 	// Update is called once per frame
 	void Update ()
 	{
-		//##################################
+		//####################################################################################
 		//death
 		if (!isDead && !isDashing) {
 			if (IsAboveVoid ()) {
@@ -119,7 +126,7 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 			}
 		}
 
-		//#################################
+		//####################################################################################
 		//movement
 
 		//Debug.Log ("PlayerController " + joystickIndex + ": Update: acceleration=" + movement_acceleration.ToString ());
@@ -164,7 +171,37 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 			transform.forward = velocity.normalized;
 		}
 
-		//##################################
+		//####################################################################################
+		//mashine interaction
+
+		bool _interruptInteraction = false;
+
+		MachinePlayerInteraction _nearestInteractableMachine;
+		bool _hasHitInteractableMachine = CheckForInteractableMachine (out _nearestInteractableMachine);
+
+		if (isInteracting && (isDashing || isBumped)) {
+			_interruptInteraction = true;
+		} else if (_hasHitInteractableMachine && isInteracting && _nearestInteractableMachine != currentMachine) {
+			_interruptInteraction = true;
+		} else if (isInteracting && !_hasHitInteractableMachine) {
+			_interruptInteraction = true;
+		} else if (bButtonCurrentlyPressed != bButtonPreviouslyPressed) {
+			if (isInteracting && bButtonPreviouslyPressed && !bButtonCurrentlyPressed) {
+				_interruptInteraction = true;
+			} else if (!isInteracting && _hasHitInteractableMachine && !bButtonPreviouslyPressed && bButtonCurrentlyPressed) {
+				isInteracting = true;
+				currentMachine = _nearestInteractableMachine;
+				currentMachine.OnStartInteraction (this);
+			}
+		}
+
+		if (_interruptInteraction) {
+			isInteracting = false;
+			currentMachine.OnEndInteraction (this);
+			currentMachine = null;
+		}
+
+		//####################################################################################
 		OnUpdate ();
 	}
 
@@ -217,7 +254,7 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 	{
 		//Debug.Log ("PlayerController: OnHandleLeftStick: called");
 
-		if (joystickIndex == this.joystickIndex && !isDead) {
+		if (joystickIndex == this.joystickIndex && !isDead && !gameController.isPaused) {
 			//Debug.Log ("PlayerController " + joystickIndex + ": OnHandleLeftStick: called");
 
 			float _force = Mathf.Clamp (stickState.magnitude, 0f, 1f) * PlayerConstants.MOVEMENT_MAX_ACCELERATION;
@@ -239,7 +276,7 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 		xButtonPreviouslyPressed = xButtonCurrentlyPressed;
 		xButtonCurrentlyPressed = pressed;
 
-		if (joystickIndex == this.joystickIndex && !isDead) {
+		if (joystickIndex == this.joystickIndex && !isDead && !gameController.isPaused) {
 			if (!xButtonPreviouslyPressed && xButtonCurrentlyPressed && !isDashing && dashCooldown == 0) {
 				isDashing = true;
 				dashTimer = 0f;
@@ -253,7 +290,7 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 		aButtonPreviouslyPressed = aButtonCurrentlyPressed;
 		aButtonCurrentlyPressed = pressed;
 
-		if (joystickIndex == this.joystickIndex && !isDead) {
+		if (joystickIndex == this.joystickIndex && !isDead && !gameController.isPaused) {
 			if (!aButtonPreviouslyPressed && aButtonCurrentlyPressed && !isDashing && overlappingItems.Count > 0) {
 				DropCurrentItem ();
 				PickUpItem ();
@@ -263,6 +300,12 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 				//Debug.Log ("PlayerController: OnHandleAButton: should have dropped item");
 			}
 		}
+	}
+
+	void IInputListener.OnHandleBButton (int joystickIndex, bool pressed)
+	{
+		bButtonPreviouslyPressed = bButtonCurrentlyPressed;
+		bButtonCurrentlyPressed = pressed;
 	}
 
 	//########################################################################
@@ -277,7 +320,7 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 
 		DropCurrentItem ();
 	}
-
+		
 	//########################################################################
 	// Private Methods
 	//########################################################################
@@ -285,7 +328,7 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 	private void DropCurrentItem ()
 	{
 		if (currentItem != null) {
-			currentItemGO.SetActive (true);
+			currentItem.OnDrop ();
 			currentItem.transform.position = this.transform.position;
 
 			uiCurrentItemText.text = "Item: None";
@@ -300,10 +343,10 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 			currentItem = overlappingItems [0];
 			currentItemGO = currentItem.gameObject;
 
-			uiCurrentItemText.text = "Item: " + currentItem.itemName;
+			uiCurrentItemText.text = "Item: " + currentItem.name;
 
 			overlappingItems.Remove (currentItem);
-			currentItem.gameObject.SetActive (false);
+			currentItem.OnPickUp ();
 		}
 	}
 
@@ -324,17 +367,42 @@ public abstract class PlayerController : MonoBehaviour, IInputListener
 			}
 		}
 
-		/*if (joystickIndex == 0) {
-			foreach (Collider _collider in _colliders) {
-				Debug.Log ("Collider tag=" + _collider.tag);
-			}
-			Debug.Log ("+++++++++++++++");
-		}*/
-
 		if (isAboveVoid && !isAboveFloor) {
 			return true;
 		}
 
 		return false;
+	}
+
+	private bool CheckForInteractableMachine (out MachinePlayerInteraction interactableMachine)
+	{
+		Ray _ray = new Ray (this.transform.position - new Vector3 (0f, -0.5f, 0f), this.transform.forward);
+		RaycastHit[] _hits = Physics.RaycastAll (_ray, characterController.radius * 2f);
+
+		RaycastHit _nearestMachineHit = new RaycastHit ();
+		float _smallestDistance = characterController.radius * 2.1f;
+		bool _hasHitMachine = false;
+
+		foreach (RaycastHit hit in _hits) {
+			if (hit.collider.tag == "Machine") {
+				float _distance = Vector3.Distance (hit.point, this.transform.position);
+				if (_distance < _smallestDistance) {
+					_smallestDistance = _distance;
+					_nearestMachineHit = hit;
+					_hasHitMachine = true;
+				}
+			}
+		}
+
+		bool _hasHitInteractableMachine = false;
+		interactableMachine = null;
+		if (_hasHitMachine) {
+			interactableMachine = _nearestMachineHit.collider.GetComponent<MachinePlayerInteraction> ();
+			if (!interactableMachine.Equals (null)) {
+				_hasHitInteractableMachine = true;
+			}
+		}
+
+		return _hasHitInteractableMachine;
 	}
 }

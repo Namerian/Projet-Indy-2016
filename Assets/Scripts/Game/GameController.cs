@@ -1,28 +1,43 @@
 ﻿using UnityEngine;
-using System.Collections;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 
-public class GameController : MonoBehaviour, IMissionListener
+public class GameController : MonoBehaviour
 {
+	public float gameTimer{ get; private set; }
+
+	public float shipHealth{ get; private set; }
+
+	private bool isGameRunning;
+
 	private PlayerController redPlayer;
 	private PlayerController greenPlayer;
 	private PlayerController bluePlayer;
 	private PlayerController yellowPlayer;
 
-	private GameObject missionViewObject;
+	private GameStateUIView gameStateUI;
 
-	private Mission currentMission;
+	private List<RandomActivation> machineRandomActivators;
+	private float machineActivationTimer;
+
+	//==========================================================================================================
+	//
+	//==========================================================================================================
 
 	void Awake ()
 	{
 		//UI
-		missionViewObject = GameObject.Find ("UI/InGameUI/MissionUI/MissionTimerPanel");
+		gameStateUI = GameObject.Find ("UI/InGameUI/GameStateUI").GetComponent<GameStateUIView> ();
 
 		//Players
 		redPlayer = GameObject.Find ("PlayerHolder/RedPlayer").GetComponent<PlayerController> ();
 		greenPlayer = GameObject.Find ("PlayerHolder/GreenPlayer").GetComponent<PlayerController> ();
 		bluePlayer = GameObject.Find ("PlayerHolder/BluePlayer").GetComponent<PlayerController> ();
 		yellowPlayer = GameObject.Find ("PlayerHolder/YellowPlayer").GetComponent<PlayerController> ();
+
+		//
+		machineRandomActivators = new List<RandomActivation> ();
 	}
 
 	// Use this for initialization
@@ -32,35 +47,85 @@ public class GameController : MonoBehaviour, IMissionListener
 		greenPlayer.Initialize (1);
 		bluePlayer.Initialize (2);
 		yellowPlayer.Initialize (3);
+
+		gameTimer = 40f;
+		shipHealth = 100f;
+		isGameRunning = true;
+		machineActivationTimer = 4f;
 	}
 
 	// Update is called once per frame
 	void Update ()
 	{
-		if (currentMission == null && Input.GetKeyDown (KeyCode.E)) {
-			currentMission = new Mission ();
-			currentMission.AddListener (this);
-			missionViewObject.GetComponent<MissionTimerPanelView> ().Initialize (currentMission);
-			currentMission.Start ();
-		} else if (currentMission != null) {
-			currentMission.Update ();
+		if (isGameRunning) {
+			if (shipHealth <= 0 || gameTimer <= 0) {
+				isGameRunning = false;
+
+				bool _gameWon = false;
+				if (shipHealth > 0) {
+					_gameWon = true;
+				}
+				gameStateUI.ActivateGameResultView (_gameWon);
+			} else {
+				//update game timer
+				gameTimer = Mathf.Clamp (gameTimer - Time.deltaTime, 0f, float.MaxValue);
+
+				//machine activation
+				machineActivationTimer = Mathf.Clamp (machineActivationTimer - Time.deltaTime, 0f, float.MaxValue);
+
+				if (machineActivationTimer == 0) {
+					int _sumOfWeights = 0;
+					foreach (RandomActivation activator in machineRandomActivators) {
+						_sumOfWeights += activator.weight;
+					}
+
+					if (_sumOfWeights > 0) {
+						RandomActivation _selectedActivator = null;
+						int _currentWeight = 0;
+						int _randomNumber = UnityEngine.Random.Range (0, _sumOfWeights);
+						foreach (RandomActivation activator in machineRandomActivators) {
+							_currentWeight += activator.weight;
+							if (_currentWeight > _randomNumber) {
+								_selectedActivator = activator;
+								break;
+							}
+						}
+
+						if (_selectedActivator != null) {
+							_selectedActivator.Activate ();
+						}
+					}
+
+					machineActivationTimer = UnityEngine.Random.Range (4f, 8f);
+				}
+			}
 		}
 	}
 
 	//==========================================================================================================
-	// IMissionListener Implementation
+	//
 	//==========================================================================================================
 
-	void IMissionListener.OnMissionStarted (Mission mission)
+	public bool isPaused{ get { return !isGameRunning; } }
+
+	public void ApplyDamageToShip (float damage)
 	{
+		if (damage > 0 && shipHealth > 0) {
+			shipHealth -= damage;
+		}
 	}
 
-	void IMissionListener.OnTimerUpdated (Mission mission)
+	public void AddMachineRandomActivator (RandomActivation activator)
 	{
+		if (!machineRandomActivators.Contains (activator)) {
+			Debug.Log ("GameController: AddMachineRandomActivator: machineName=" + activator.gameObject.name);
+			machineRandomActivators.Add (activator);
+		}
 	}
 
-	void IMissionListener.OnMissionEnded (Mission mission)
+	public void RemoveMachineRandomActivator (RandomActivation activator)
 	{
-		currentMission = null;
+		Debug.Log ("GameController: RemoveMachineRandomActivator: machineName=" + activator.gameObject.name);
+		machineRandomActivators.Remove (activator);
 	}
 }
