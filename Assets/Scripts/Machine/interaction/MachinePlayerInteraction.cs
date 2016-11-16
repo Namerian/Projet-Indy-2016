@@ -42,7 +42,21 @@ public class MachinePlayerInteraction : MonoBehaviour, IMachineListener
 
 		if (isActive) {
 			if (requiresItem) {
-				
+				if (player.currentItem != null) {
+					string[] _playerItemCategories = player.currentItem.itemCategories;
+					bool _interactionAlloxed = false;
+
+					foreach (string _allowedCategory in itemCategories) {
+						if (CheckForAllowedCategory (_allowedCategory, _playerItemCategories)) {
+							_interactionAlloxed = true;
+							break;
+						}
+					}
+
+					if (_interactionAlloxed) {
+						machineController.SetState (MachineController.MachineState.Idle);
+					}
+				}
 			} else {
 				machineController.SetState (MachineController.MachineState.Idle);
 			}
@@ -52,5 +66,18 @@ public class MachinePlayerInteraction : MonoBehaviour, IMachineListener
 	public void OnEndInteraction (PlayerController player)
 	{
 		//Debug.Log ("MachinePlayerInteraction: OnEndInteraction: machineName=" + this.gameObject.name + " playerName=" + player.gameObject.name);
+	}
+
+
+
+	private bool CheckForAllowedCategory (string allowedCategory, string[] playerItemCategories)
+	{
+		foreach (string _playerItemCategory in playerItemCategories) {
+			if (allowedCategory == _playerItemCategory) {
+				return true;
+			}
+		}
+
+		return true;
 	}
 }
