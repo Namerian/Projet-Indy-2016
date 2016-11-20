@@ -30,7 +30,9 @@ public class UniqueDamage : MonoBehaviour, IMachineListener
 	{
 		if (isActive && !gameController.isPaused) {
 			if (timer >= delay) {
+				machineController.SetState (MachineController.MachineState.Idle);
 				gameController.ApplyDamageToShip (damage);
+
 				causedDamage = true;
 				isActive = false;
 			}

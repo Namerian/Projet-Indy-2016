@@ -40,9 +40,6 @@ public class ActiveIcon : MonoBehaviour, IMachineListener
 
 			blinkTimer += Time.deltaTime;
 		}
-
-
-
 	}
 
 	public void OnStateChange (MachineController.MachineState state)
