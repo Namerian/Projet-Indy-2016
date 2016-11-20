@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
 using System.Collections;
 
 public class ActiveIcon : MonoBehaviour, IMachineListener
@@ -6,16 +7,22 @@ public class ActiveIcon : MonoBehaviour, IMachineListener
 	public GameObject iconPrefab;
 	public Vector3 relativePosition;
 
+	public float baseAlpha = 0.7f;
+	public float blinkSpeed = 3f;
+
 	private MachineController machineController;
-	private GameObject uiIconHolder;
+	private GameObject mapOverlay;
 
 	private GameObject icon;
+
+	private bool isActive;
+	private float blinkTimer;
 
 	// Use this for initialization
 	void Start ()
 	{
 		machineController = GetComponent<MachineController> ();
-		uiIconHolder = GameObject.Find ("UI/InGameUI/IconHolder");
+		mapOverlay = GameObject.Find ("MapOverlay");
 
 		machineController.AddListener (this);
 	}
@@ -23,21 +30,38 @@ public class ActiveIcon : MonoBehaviour, IMachineListener
 	// Update is called once per frame
 	void Update ()
 	{
-	
+		if (isActive) {
+			float _alpha = baseAlpha + (1 - baseAlpha) * Mathf.Sin (blinkTimer * blinkSpeed);
+
+			Image _image = icon.GetComponent<Image> ();
+			Color _color = _image.color;
+			_color.a = _alpha;
+			_image.color = _color;
+
+			blinkTimer += Time.deltaTime;
+		}
+
+
+
 	}
 
 	public void OnStateChange (MachineController.MachineState state)
 	{
 		if (state == MachineController.MachineState.Active && iconPrefab != null) {
 			icon = (GameObject)Instantiate (iconPrefab);
-			icon.transform.SetParent (uiIconHolder.transform, false);
+			icon.transform.SetParent (mapOverlay.transform, false);
 
 			Vector3 _targetWorldPosition = this.transform.position + relativePosition;
-			Vector3 _targetScreenPosition = Camera.main.WorldToScreenPoint (_targetWorldPosition) - uiIconHolder.transform.position;
+			icon.transform.Translate (_targetWorldPosition);
 
-			icon.transform.Translate (_targetScreenPosition);
+			icon.transform.rotation = Quaternion.LookRotation (-Camera.main.transform.forward, Camera.main.transform.up);
+
+			isActive = true;
+			blinkTimer = 0f;
 		} else {
 			Destroy (icon);
+
+			isActive = false;
 		}
 	}
 
