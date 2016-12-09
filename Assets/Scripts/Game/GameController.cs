@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.SceneManagement;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -38,7 +39,10 @@ public class GameController : MonoBehaviour
 
 		//
 		machineRandomActivators = new List<RandomActivation> ();
-	}
+
+        //
+        SceneManager.LoadScene("Scenes/Levels/PatrickLevelTest001", LoadSceneMode.Additive);
+    }
 
 	// Use this for initialization
 	void Start ()
@@ -118,14 +122,14 @@ public class GameController : MonoBehaviour
 	public void AddMachineRandomActivator (RandomActivation activator)
 	{
 		if (!machineRandomActivators.Contains (activator)) {
-			Debug.Log ("GameController: AddMachineRandomActivator: machineName=" + activator.gameObject.name);
+			//Debug.Log ("GameController: AddMachineRandomActivator: machineName=" + activator.gameObject.name);
 			machineRandomActivators.Add (activator);
 		}
 	}
 
 	public void RemoveMachineRandomActivator (RandomActivation activator)
 	{
-		Debug.Log ("GameController: RemoveMachineRandomActivator: machineName=" + activator.gameObject.name);
+		//Debug.Log ("GameController: RemoveMachineRandomActivator: machineName=" + activator.gameObject.name);
 		machineRandomActivators.Remove (activator);
 	}
 }

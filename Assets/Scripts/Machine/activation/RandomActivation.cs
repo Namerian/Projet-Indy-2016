@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.SceneManagement;
 using System.Collections;
 
 public class RandomActivation : MonoBehaviour, IMachineListener
@@ -7,6 +8,11 @@ public class RandomActivation : MonoBehaviour, IMachineListener
 
 	private GameController gameController;
 	private MachineController machineController;
+
+    void Awake()
+    {
+
+    }
 
 	// Use this for initialization
 	void Start ()
@@ -34,7 +40,7 @@ public class RandomActivation : MonoBehaviour, IMachineListener
 
 	void IMachineListener.OnStateChange (MachineController.MachineState state)
 	{
-		Debug.Log ("RandomActivation: OnStateChange: state=" + state.ToString ());
+		//Debug.Log ("RandomActivation: OnStateChange: state=" + state.ToString ());
 
 		if (state == MachineController.MachineState.Idle) {
 			gameController.AddMachineRandomActivator (this);
