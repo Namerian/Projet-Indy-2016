@@ -6,130 +6,148 @@ using System.Collections.Generic;
 
 public class GameController : MonoBehaviour
 {
-	public float gameTimer{ get; private set; }
+    public static GameController Instance { get; private set; }
 
-	public float shipHealth{ get; private set; }
+    public float gameTimer { get; private set; }
 
-	private bool isGameRunning;
+    public float shipHealth { get; private set; }
 
-	private PlayerController redPlayer;
-	private PlayerController greenPlayer;
-	private PlayerController bluePlayer;
-	private PlayerController yellowPlayer;
+    private bool isGameRunning;
 
-	private GameStateUIView gameStateUI;
+    private GameStateUIView gameStateUI;
 
-	private List<RandomActivation> machineRandomActivators;
-	private float machineActivationTimer;
+    private List<RandomActivation> machineRandomActivators;
+    private float machineActivationTimer;
 
-	//==========================================================================================================
-	//
-	//==========================================================================================================
+    //==========================================================================================================
+    //
+    //==========================================================================================================
 
-	void Awake ()
-	{
-		//UI
-		gameStateUI = GameObject.Find ("UI/InGameUI/GameStateUI").GetComponent<GameStateUIView> ();
+    void Awake()
+    {
+        if (Instance == null)
+        {
+            Instance = this;
 
-		//Players
-		redPlayer = GameObject.Find ("PlayerHolder/RedPlayer").GetComponent<PlayerController> ();
-		greenPlayer = GameObject.Find ("PlayerHolder/GreenPlayer").GetComponent<PlayerController> ();
-		bluePlayer = GameObject.Find ("PlayerHolder/BluePlayer").GetComponent<PlayerController> ();
-		yellowPlayer = GameObject.Find ("PlayerHolder/YellowPlayer").GetComponent<PlayerController> ();
+            //
+            machineRandomActivators = new List<RandomActivation>();
+        }
+        else
+        {
+            Destroy(this);
+        }
+    }
 
-		//
-		machineRandomActivators = new List<RandomActivation> ();
+    // Use this for initialization
+    void Start()
+    {
+        //UI
+        gameStateUI = GameObject.Find("UI/InGameUI/GameStateUI").GetComponent<GameStateUIView>();
+
+        gameTimer = 40f;
+        shipHealth = 100f;
+        isGameRunning = false;
+        machineActivationTimer = 4f;
 
         //
+        SceneManager.sceneLoaded += OnSceneLoaded;
         SceneManager.LoadScene("Scenes/Levels/PatrickLevelTest001", LoadSceneMode.Additive);
     }
 
-	// Use this for initialization
-	void Start ()
-	{
-		redPlayer.Initialize (0);
-		greenPlayer.Initialize (1);
-		bluePlayer.Initialize (2);
-		yellowPlayer.Initialize (3);
+    // Update is called once per frame
+    void Update()
+    {
+        if (isGameRunning)
+        {
+            if (shipHealth <= 0 || gameTimer <= 0)
+            {
+                isGameRunning = false;
 
-		gameTimer = 40f;
-		shipHealth = 100f;
-		isGameRunning = true;
-		machineActivationTimer = 4f;
-	}
+                bool _gameWon = false;
+                if (shipHealth > 0)
+                {
+                    _gameWon = true;
+                }
+                gameStateUI.ActivateGameResultView(_gameWon);
+            }
+            else
+            {
+                //update game timer
+                gameTimer = Mathf.Clamp(gameTimer - Time.deltaTime, 0f, float.MaxValue);
 
-	// Update is called once per frame
-	void Update ()
-	{
-		if (isGameRunning) {
-			if (shipHealth <= 0 || gameTimer <= 0) {
-				isGameRunning = false;
+                //machine activation
+                machineActivationTimer = Mathf.Clamp(machineActivationTimer - Time.deltaTime, 0f, float.MaxValue);
 
-				bool _gameWon = false;
-				if (shipHealth > 0) {
-					_gameWon = true;
-				}
-				gameStateUI.ActivateGameResultView (_gameWon);
-			} else {
-				//update game timer
-				gameTimer = Mathf.Clamp (gameTimer - Time.deltaTime, 0f, float.MaxValue);
+                if (machineActivationTimer == 0)
+                {
+                    int _sumOfWeights = 0;
+                    foreach (RandomActivation activator in machineRandomActivators)
+                    {
+                        _sumOfWeights += activator.weight;
+                    }
 
-				//machine activation
-				machineActivationTimer = Mathf.Clamp (machineActivationTimer - Time.deltaTime, 0f, float.MaxValue);
+                    if (_sumOfWeights > 0)
+                    {
+                        RandomActivation _selectedActivator = null;
+                        int _currentWeight = 0;
+                        int _randomNumber = UnityEngine.Random.Range(0, _sumOfWeights);
+                        foreach (RandomActivation activator in machineRandomActivators)
+                        {
+                            _currentWeight += activator.weight;
+                            if (_currentWeight > _randomNumber)
+                            {
+                                _selectedActivator = activator;
+                                break;
+                            }
+                        }
 
-				if (machineActivationTimer == 0) {
-					int _sumOfWeights = 0;
-					foreach (RandomActivation activator in machineRandomActivators) {
-						_sumOfWeights += activator.weight;
-					}
+                        if (_selectedActivator != null)
+                        {
+                            _selectedActivator.Activate();
+                        }
+                    }
 
-					if (_sumOfWeights > 0) {
-						RandomActivation _selectedActivator = null;
-						int _currentWeight = 0;
-						int _randomNumber = UnityEngine.Random.Range (0, _sumOfWeights);
-						foreach (RandomActivation activator in machineRandomActivators) {
-							_currentWeight += activator.weight;
-							if (_currentWeight > _randomNumber) {
-								_selectedActivator = activator;
-								break;
-							}
-						}
+                    machineActivationTimer = UnityEngine.Random.Range(4f, 8f);
+                }
+            }
+        }
+    }
 
-						if (_selectedActivator != null) {
-							_selectedActivator.Activate ();
-						}
-					}
+    //==========================================================================================================
+    //
+    //==========================================================================================================
 
-					machineActivationTimer = UnityEngine.Random.Range (4f, 8f);
-				}
-			}
-		}
-	}
+    public bool isPaused { get { return !isGameRunning; } }
 
-	//==========================================================================================================
-	//
-	//==========================================================================================================
+    public void ApplyDamageToShip(float damage)
+    {
+        if (damage > 0 && shipHealth > 0)
+        {
+            shipHealth -= damage;
+        }
+    }
 
-	public bool isPaused{ get { return !isGameRunning; } }
+    public void AddMachineRandomActivator(RandomActivation activator)
+    {
+        if (!machineRandomActivators.Contains(activator))
+        {
+            //Debug.Log ("GameController: AddMachineRandomActivator: machineName=" + activator.gameObject.name);
+            machineRandomActivators.Add(activator);
+        }
+    }
 
-	public void ApplyDamageToShip (float damage)
-	{
-		if (damage > 0 && shipHealth > 0) {
-			shipHealth -= damage;
-		}
-	}
+    public void RemoveMachineRandomActivator(RandomActivation activator)
+    {
+        //Debug.Log ("GameController: RemoveMachineRandomActivator: machineName=" + activator.gameObject.name);
+        machineRandomActivators.Remove(activator);
+    }
 
-	public void AddMachineRandomActivator (RandomActivation activator)
-	{
-		if (!machineRandomActivators.Contains (activator)) {
-			//Debug.Log ("GameController: AddMachineRandomActivator: machineName=" + activator.gameObject.name);
-			machineRandomActivators.Add (activator);
-		}
-	}
+    void OnSceneLoaded(Scene scene, LoadSceneMode loadSceneMode)
+    {
+        Debug.Log("GameController: OnSceneLoaded: called!");
 
-	public void RemoveMachineRandomActivator (RandomActivation activator)
-	{
-		//Debug.Log ("GameController: RemoveMachineRandomActivator: machineName=" + activator.gameObject.name);
-		machineRandomActivators.Remove (activator);
-	}
+        isGameRunning = true;
+
+        SpawnManager.Instance.CreateAndSpawnPlayers();
+    }
 }
