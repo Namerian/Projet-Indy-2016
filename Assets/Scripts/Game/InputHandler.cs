@@ -11,16 +11,26 @@ public class InputHandler : MonoBehaviour
 		"Joystick_4"
 	};
 
+	public static InputHandler Instance{ get; private set; }
+
+	//===========================
+
 	private List<IInputListener>[] inputListeners;
 
 	//################################################################################
 
 	void Awake ()
 	{
-		inputListeners = new List<IInputListener>[4];
+		if (Instance == null) {
+			Instance = this;
 
-		for (int i = 0; i < 4; i++) {
-			inputListeners [i] = new List<IInputListener> ();
+			inputListeners = new List<IInputListener>[4];
+
+			for (int i = 0; i < 4; i++) {
+				inputListeners [i] = new List<IInputListener> ();
+			}
+		} else {
+			Destroy (this);
 		}
 	}
 
@@ -38,6 +48,8 @@ public class InputHandler : MonoBehaviour
 				continue;
 			}*/
 
+			List<IInputListener> listenerList = new List<IInputListener> (inputListeners [_joystickIndex]);
+
 			//######################################################################
 			// left stick
 
@@ -49,7 +61,7 @@ public class InputHandler : MonoBehaviour
 				Debug.Log ("InputHandler: Update: Joystick " + _joystickIndex + ": leftStick=" + _leftStickState.ToString ());
 			}*/
 
-			foreach (IInputListener listener in inputListeners[_joystickIndex]) {
+			foreach (IInputListener listener in listenerList) {
 				listener.OnHandleLeftStick (_joystickIndex, _leftStickState);
 			}
 
@@ -62,7 +74,7 @@ public class InputHandler : MonoBehaviour
 				Debug.Log ("InputHandler: Update: Joystick " + _joystickIndex + ": X Button pressed (" + _xPressed + ")");
 			}*/
 
-			foreach (IInputListener listener in inputListeners[_joystickIndex]) {
+			foreach (IInputListener listener in listenerList) {
 				listener.OnHandleXButton (_joystickIndex, _xPressed);
 			}
 
@@ -76,7 +88,7 @@ public class InputHandler : MonoBehaviour
 				_aPressed = true;
 			}
 
-			foreach (IInputListener listener in inputListeners[_joystickIndex]) {
+			foreach (IInputListener listener in listenerList) {
 				listener.OnHandleAButton (_joystickIndex, _aPressed);
 			}
 
@@ -90,7 +102,7 @@ public class InputHandler : MonoBehaviour
 				_bPressed = true;
 			}
 
-			foreach (IInputListener listener in inputListeners[_joystickIndex]) {
+			foreach (IInputListener listener in listenerList) {
 				listener.OnHandleBButton (_joystickIndex, _bPressed);
 			}
 		}
@@ -123,6 +135,10 @@ public class InputHandler : MonoBehaviour
 	/// </summary>
 	public void RemoveInputListener (IInputListener listener)
 	{
-		
+		for (int i = 0; i < 4; i++) {
+			if (inputListeners [i].Contains (listener)) {
+				inputListeners [i].Remove (listener);
+			}
+		}
 	}
 }
