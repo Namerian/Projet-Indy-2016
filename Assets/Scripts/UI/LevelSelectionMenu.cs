@@ -12,6 +12,7 @@ public class LevelSelectionMenu : MonoBehaviour, IInputListener
 	private List<MenuLevelItem> _menuLevelItemList;
 	private MenuLevelItem _selectedItem;
 	private int _selectedItemIndex;
+	private bool _hasChangedSelection;
 
 	void Awake ()
 	{
@@ -21,6 +22,9 @@ public class LevelSelectionMenu : MonoBehaviour, IInputListener
 		this._isActive = false;
 		this._levelListPanel = this.transform.FindChild ("LevelList");
 		this._menuLevelItemList = new List<MenuLevelItem> ();
+		this._selectedItem = null;
+		this._selectedItemIndex = -1;
+		this._hasChangedSelection = false;
 
 		Global.LevelSelectionMenu = this;
 	}
@@ -39,21 +43,19 @@ public class LevelSelectionMenu : MonoBehaviour, IInputListener
 
 	public void ToggleVisibility (bool visible)
 	{
-		if (visible) {
+		if (visible && !_isActive) {
 			this.CanvasGroup.alpha = 1;
 			this._isActive = true;
-
-			LoadLevelScenes ();
-
+			PopulateLevelList ();
 			InputHandler.Instance.AddInputListener (this, InputHandler.JOYSTICK_NAMES [0]);
-		} else {
+		} else if (!visible && _isActive) {
 			this.CanvasGroup.alpha = 0;
 			this._isActive = false;
 			InputHandler.Instance.RemoveInputListener (this);
 		}
 	}
 
-	private void LoadLevelScenes ()
+	private void PopulateLevelList ()
 	{
 		DirectoryInfo levelDirectoryPath = new DirectoryInfo (Application.dataPath + "/Scenes/Levels");
 		FileInfo[] fileInfoArray = levelDirectoryPath.GetFiles ("*.unity", SearchOption.AllDirectories);
@@ -74,6 +76,10 @@ public class LevelSelectionMenu : MonoBehaviour, IInputListener
 
 	private void SelectListItem (int index)
 	{
+		if (index < 0 || index >= _menuLevelItemList.Count || _hasChangedSelection) {
+			return;
+		}
+
 		if (_selectedItem != null) {
 			_selectedItem.Background.color = Color.white;
 			_selectedItem = null;
@@ -81,20 +87,37 @@ public class LevelSelectionMenu : MonoBehaviour, IInputListener
 
 		_selectedItem = _menuLevelItemList [index];
 		_selectedItem.Background.color = Color.yellow;
+		_selectedItemIndex = index;
+
+		_hasChangedSelection = true;
+		Invoke ("OnSelectionChangeTimerEnded", 0.5f);
 	}
 
-	#region IInputListener implementation
+	private void OnSelectionChangeTimerEnded ()
+	{
+		_hasChangedSelection = false;
+	}
+
+	//=================================================================================================
+	// Input Handling
+	//=================================================================================================
 
 	void IInputListener.OnHandleLeftStick (int joystickIndex, Vector2 stickState)
 	{
-		if (joystickIndex == 0 && stickState.y != 0) {
-			Debug.Log ("LevelSelectionMenu: LeftStick test");
+		if (_isActive && joystickIndex == 0 && stickState.y != 0) {
+			//Debug.Log ("LevelSelectionMenu: OnHandleLeftStick: stickState.y=" + stickState.y);
+
+			if (stickState.y > 0.4f) {
+				SelectListItem (_selectedItemIndex - 1);
+			} else if (stickState.y < 0.4f) {
+				SelectListItem (_selectedItemIndex + 1);
+			}
 		}
 	}
 
 	void IInputListener.OnHandleXButton (int joystickIndex, bool pressed)
 	{
-		if (joystickIndex == 0 && pressed && _selectedItem != null) {
+		if (_isActive && joystickIndex == 0 && pressed && _selectedItem != null) {
 			GameController.Instance.LoadLevel (_selectedItem.Text.text);
 		}
 	}
@@ -106,6 +129,4 @@ public class LevelSelectionMenu : MonoBehaviour, IInputListener
 	void IInputListener.OnHandleBButton (int joystickIndex, bool pressed)
 	{
 	}
-
-	#endregion
 }

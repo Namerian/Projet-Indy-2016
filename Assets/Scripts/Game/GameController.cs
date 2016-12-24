@@ -145,7 +145,7 @@ public class GameController : MonoBehaviour
 	public void LoadLevel (string levelName)
 	{
 		SceneManager.sceneLoaded += OnSceneLoaded;
-		SceneManager.LoadScene ("Scenes/Levels/PatrickLevelTest001", LoadSceneMode.Additive);
+		SceneManager.LoadScene ("Scenes/Levels/" + levelName, LoadSceneMode.Additive);
 
 		Global.LevelSelectionMenu.ToggleVisibility (false);
 		Global.InGameUI.ToggleVisibility (true);
