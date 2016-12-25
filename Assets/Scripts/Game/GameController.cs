@@ -16,14 +16,11 @@ public class GameController : MonoBehaviour
 
 	private bool isGameRunning;
 
+	public bool isPaused { get { return !isGameRunning; } }
+
 	//=============================================
 
 	private GameStateUIView gameStateUI;
-
-	//=============================================
-
-	private List<RandomActivation> machineRandomActivators;
-	private float machineActivationTimer;
 
 	//==========================================================================================================
 	//
@@ -31,18 +28,13 @@ public class GameController : MonoBehaviour
 
 	void Awake ()
 	{
-		if (Instance == null) {
-			Instance = this;
+		//
+		gameTimer = 40f;
+		shipHealth = 100f;
+		isGameRunning = false;
 
-			//
-			machineRandomActivators = new List<RandomActivation> ();
-			gameTimer = 40f;
-			shipHealth = 100f;
-			isGameRunning = false;
-			machineActivationTimer = 4f;
-		} else {
-			Destroy (this);
-		}
+		//
+		Global.GameController = this;
 	}
 
 	// Use this for initialization
@@ -70,35 +62,6 @@ public class GameController : MonoBehaviour
 			} else {
 				//update game timer
 				gameTimer = Mathf.Clamp (gameTimer - Time.deltaTime, 0f, float.MaxValue);
-
-				//machine activation
-				machineActivationTimer = Mathf.Clamp (machineActivationTimer - Time.deltaTime, 0f, float.MaxValue);
-
-				if (machineActivationTimer == 0) {
-					int _sumOfWeights = 0;
-					foreach (RandomActivation activator in machineRandomActivators) {
-						_sumOfWeights += activator.weight;
-					}
-
-					if (_sumOfWeights > 0) {
-						RandomActivation _selectedActivator = null;
-						int _currentWeight = 0;
-						int _randomNumber = UnityEngine.Random.Range (0, _sumOfWeights);
-						foreach (RandomActivation activator in machineRandomActivators) {
-							_currentWeight += activator.weight;
-							if (_currentWeight > _randomNumber) {
-								_selectedActivator = activator;
-								break;
-							}
-						}
-
-						if (_selectedActivator != null) {
-							_selectedActivator.Activate ();
-						}
-					}
-
-					machineActivationTimer = UnityEngine.Random.Range (4f, 8f);
-				}
 			}
 		}
 	}
@@ -107,8 +70,6 @@ public class GameController : MonoBehaviour
 	//
 	//==========================================================================================================
 
-	public bool isPaused { get { return !isGameRunning; } }
-
 	public void ApplyDamageToShip (float damage)
 	{
 		if (damage > 0 && shipHealth > 0) {
@@ -116,28 +77,15 @@ public class GameController : MonoBehaviour
 		}
 	}
 
-	public void AddMachineRandomActivator (RandomActivation activator)
-	{
-		if (!machineRandomActivators.Contains (activator)) {
-			//Debug.Log ("GameController: AddMachineRandomActivator: machineName=" + activator.gameObject.name);
-			machineRandomActivators.Add (activator);
-		}
-	}
-
-	public void RemoveMachineRandomActivator (RandomActivation activator)
-	{
-		//Debug.Log ("GameController: RemoveMachineRandomActivator: machineName=" + activator.gameObject.name);
-		machineRandomActivators.Remove (activator);
-	}
-
 	void OnSceneLoaded (Scene scene, LoadSceneMode loadSceneMode)
 	{
-		//Debug.Log("GameController: OnSceneLoaded: called!");
+		Debug.Log ("GameController: OnSceneLoaded: called!");
 
 		Global.MenuCamera.enabled = false;
 		Global.LevelCamera.enabled = true;
-
 		SpawnManager.Instance.CreateAndSpawnPlayers ();
+
+		Event.Instance.SendOnGameStartedEvent ();
 
 		isGameRunning = true;
 	}

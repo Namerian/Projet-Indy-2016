@@ -118,7 +118,7 @@ public class LevelSelectionMenu : MonoBehaviour, IInputListener
 	void IInputListener.OnHandleXButton (int joystickIndex, bool pressed)
 	{
 		if (_isActive && joystickIndex == 0 && pressed && _selectedItem != null) {
-			GameController.Instance.LoadLevel (_selectedItem.Text.text);
+			Global.GameController.LoadLevel (_selectedItem.Text.text);
 		}
 	}
 
