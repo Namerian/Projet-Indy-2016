@@ -26,26 +26,37 @@ public class UniqueDamage : MonoBehaviour, IMachineListener
 	}
 	
 	// Update is called once per frame
-	void Update ()
+	/*void Update ()
 	{
 		if (isActive && !gameController.isPaused) {
 			if (timer >= delay) {
+				machineController.SetState (MachineController.MachineState.Idle);
 				gameController.ApplyDamageToShip (damage);
+
 				causedDamage = true;
 				isActive = false;
 			}
 
 			timer += Time.deltaTime;
 		}
-	}
+	}*/
 
 	public void OnStateChange (MachineController.MachineState state)
 	{
 		if (state == MachineController.MachineState.Active && !causedDamage) {
 			isActive = true;
+            Invoke("DoDammage", delay);
 		} else {
 			isActive = false;
-			timer = 0f;
 		}
 	}
+
+    private void DoDammage()
+    {
+        if (isActive && !gameController.isPaused)
+        {
+            gameController.ApplyDamageToShip(damage);
+            causedDamage = true;
+        }
+    }
 }
