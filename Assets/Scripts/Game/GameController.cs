@@ -83,7 +83,7 @@ public class GameController : MonoBehaviour
 
 		Global.MenuCamera.enabled = false;
 		Global.LevelCamera.enabled = true;
-		SpawnManager.Instance.CreateAndSpawnPlayers ();
+		//SpawnManager.Instance.CreateAndSpawnPlayers ();
 
 		Event.Instance.SendOnGameStartedEvent ();
 

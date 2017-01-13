@@ -65,7 +65,7 @@ public class LevelSelectionMenu : MonoBehaviour, IInputListener
 		}
 
 		foreach (FileInfo fileInfo in fileInfoArray) {
-			GameObject menuItemObj = (GameObject)Instantiate (Resources.Load ("Prefabs/MenuLevelItem"), _levelListPanel);
+			GameObject menuItemObj = (GameObject)Instantiate (Resources.Load ("Prefabs/UI/MenuLevelItem"), _levelListPanel);
 			MenuLevelItem menuItemScript = menuItemObj.GetComponent<MenuLevelItem> ();
 			menuItemScript.Text.text = Path.GetFileNameWithoutExtension (fileInfo.Name);
 			_menuLevelItemList.Add (menuItemScript);

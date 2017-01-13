@@ -72,7 +72,7 @@ public class MachinePlayerInteraction : MonoBehaviour, IMachineListener
 	{
 		//Debug.Log ("MachinePlayerInteraction: OnStartInteraction: machineName=" + this.gameObject.name + " playerName=" + player.gameObject.name);
 
-		if (isActive) {
+		/*if (isActive) {
 			if (requiresItem) {
 				if (player.currentItem != null) {
 					string[] _playerItemCategories = player.currentItem.itemCategories;
@@ -92,7 +92,7 @@ public class MachinePlayerInteraction : MonoBehaviour, IMachineListener
 			} else {
 				StartInteraction (player);
 			}
-		}
+		}*/
 	}
 
 	public void OnEndInteraction (PlayerController player)
