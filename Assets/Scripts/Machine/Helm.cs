@@ -5,6 +5,7 @@ using UnityEngine;
 public class Helm : IMachine
 {
 	public float _navigationTime = 2f;
+	public int _activationChance = 20;
 
 	private CanvasGroup _dangerIconCanvasGroup;
 
@@ -31,7 +32,7 @@ public class Helm : IMachine
 	// Use this for initialization
 	void Start ()
 	{
-		Activate ();
+		Invoke ("RandomActivation", UnityEngine.Random.Range (1f, 2f));
 	}
 	
 	// Update is called once per frame
@@ -112,5 +113,22 @@ public class Helm : IMachine
 		_dangerIconCanvasGroup.alpha = 0;
 
 		Global.GameController.WindForce.Set (0, 0, 0);
+
+		Invoke ("RandomActivation", UnityEngine.Random.Range (1f, 2f));
+	}
+
+	private void RandomActivation ()
+	{
+		if (_isActive) {
+			return;
+		}
+
+		int diceRoll = UnityEngine.Random.Range (1, 100);
+
+		if (diceRoll <= _activationChance) {
+			Activate ();
+		} else {
+			Invoke ("RandomActivation", UnityEngine.Random.Range (1f, 2f));
+		}
 	}
 }

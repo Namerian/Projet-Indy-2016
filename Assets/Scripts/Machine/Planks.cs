@@ -5,8 +5,12 @@ using UnityEngine;
 public class Planks : IMachine
 {
 	public float _repairTime = 2;
+	public float _damagePerSecond = 2;
+	public int _activationChance = 20;
 
 	private SpriteRenderer _renderer;
+
+	private CanvasGroup _dangerIconCanvasGroup;
 
 	private bool _isActive = false;
 
@@ -20,12 +24,17 @@ public class Planks : IMachine
 	{
 		_renderer = this.GetComponent<SpriteRenderer> ();
 		_renderer.enabled = false;
+
+		GameObject dangerIcon = this.transform.Find ("Canvas/DangerIcon").gameObject;
+		_dangerIconCanvasGroup = dangerIcon.GetComponent<CanvasGroup> ();
+
+		_dangerIconCanvasGroup.alpha = 0;
 	}
 
 	// Use this for initialization
 	void Start ()
 	{
-		Activate ();
+		Invoke ("RandomActivation", UnityEngine.Random.Range (1f, 2f));
 	}
 	
 	// Update is called once per frame
@@ -85,6 +94,10 @@ public class Planks : IMachine
 
 		_isActive = true;
 		_renderer.enabled = true;
+
+		_dangerIconCanvasGroup.alpha = 1;
+
+		Invoke ("DoDamage", 1f);
 	}
 
 	private void Deactivate ()
@@ -93,5 +106,33 @@ public class Planks : IMachine
 		_renderer.enabled = false;
 
 		_isRepairing = false;
+
+		_dangerIconCanvasGroup.alpha = 0;
+
+		Invoke ("RandomActivation", UnityEngine.Random.Range (1f, 2f));
+	}
+
+	private void DoDamage ()
+	{
+		if (_isActive) {
+			Global.GameController.ApplyDamageToShip (_damagePerSecond);
+
+			Invoke ("DoDamage", 1f);
+		}
+	}
+
+	private void RandomActivation ()
+	{
+		if (_isActive) {
+			return;
+		}
+
+		int diceRoll = UnityEngine.Random.Range (1, 100);
+
+		if (diceRoll <= _activationChance) {
+			Activate ();
+		} else {
+			Invoke ("RandomActivation", UnityEngine.Random.Range (1f, 2f));
+		}
 	}
 }

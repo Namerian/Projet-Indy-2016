@@ -7,6 +7,8 @@ public class Canon : IMachine
 {
 	public float _activeTime = 15f;
 	public float _loadingTime = 1f;
+	public float _damage = 15f;
+	public int _activationChance = 20;
 
 	private CanvasGroup _dangerIconCanvasGroup;
 	private CanvasGroup _timerCircleCanvasGroup;
@@ -39,7 +41,7 @@ public class Canon : IMachine
 	// Use this for initialization
 	void Start ()
 	{
-		Activate ();
+		Invoke ("RandomActivation", UnityEngine.Random.Range (1f, 2f));
 	}
 	
 	// Update is called once per frame
@@ -50,6 +52,8 @@ public class Canon : IMachine
 		}
 
 		if (_activeTimer >= _activeTime) {
+			Global.GameController.ApplyDamageToShip (_damage);
+
 			Deactivate ();
 		} else {
 			_activeTimer += Time.deltaTime;
@@ -132,5 +136,22 @@ public class Canon : IMachine
 
 		_dangerIconCanvasGroup.alpha = 0;
 		_timerCircleCanvasGroup.alpha = 0;
+
+		Invoke ("RandomActivation", UnityEngine.Random.Range (1f, 2f));
+	}
+
+	private void RandomActivation ()
+	{
+		if (_isActive) {
+			return;
+		}
+
+		int diceRoll = UnityEngine.Random.Range (1, 100);
+
+		if (diceRoll <= _activationChance) {
+			Activate ();
+		} else {
+			Invoke ("RandomActivation", UnityEngine.Random.Range (1f, 2f));
+		}
 	}
 }
