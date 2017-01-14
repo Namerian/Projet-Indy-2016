@@ -45,22 +45,24 @@ public class Canon : IMachine
 	// Update is called once per frame
 	void Update ()
 	{
-		if (_isActive) {
-			if (_activeTimer >= _activeTime) {
-				Deactivate ();
-			} else {
-				_activeTimer += Time.deltaTime;
+		if (!_isActive) {
+			return;
+		}
 
-				_timerCircleImage.fillAmount = _activeTimer / _activeTime;
+		if (_activeTimer >= _activeTime) {
+			Deactivate ();
+		} else {
+			_activeTimer += Time.deltaTime;
+
+			_timerCircleImage.fillAmount = _activeTimer / _activeTime;
+		}
+
+		if (_isLoading) {
+			if (!_loadingInteraction.interactionUpdated) {
+				_isLoading = false;
 			}
 
-			if (_isLoading) {
-				if (!_loadingInteraction.interactionUpdated) {
-					_isLoading = false;
-				}
-
-				_loadingInteraction.interactionUpdated = false;
-			}
+			_loadingInteraction.interactionUpdated = false;
 		}
 	}
 
