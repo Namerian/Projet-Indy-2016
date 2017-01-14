@@ -14,6 +14,8 @@ public class GameController : MonoBehaviour
 
 	public bool _isPaused { get { return !_isGameRunning; } }
 
+	public Vector3 WindForce { get; set; }
+
 	//=============================================
 
 	private GameStateUIView _gameStateUI;
@@ -66,6 +68,10 @@ public class GameController : MonoBehaviour
 			_shipHealth -= damage;
 		}
 	}
+
+	//==========================================================================================================
+	//
+	//==========================================================================================================
 
 	void OnSceneLoaded (Scene scene, LoadSceneMode loadSceneMode)
 	{

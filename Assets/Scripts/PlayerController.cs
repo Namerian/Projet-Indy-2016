@@ -192,6 +192,10 @@ public class PlayerController : MonoBehaviour, IInputListener
 			}
 		}
 
+		if (_gameController.WindForce.magnitude > 0) {
+			totalAcceleration += _gameController.WindForce;
+		}
+
 		_velocity += totalAcceleration - PlayerConstants.MOVEMENT_FRICTION * _velocity;
 		_velocity = Vector3.ClampMagnitude (_velocity, PlayerConstants.MOVEMENT_MAX_VELOCITY);
 
@@ -596,6 +600,10 @@ public class PlayerController : MonoBehaviour, IInputListener
 		if (!state.isLegal) {
 			StopInteractingWithMachine ();
 			return;
+		}
+
+		if (state.progress >= 1) {
+			StopInteractingWithMachine ();
 		}
 
 		_interactionCircleImage.fillAmount = state.progress;
