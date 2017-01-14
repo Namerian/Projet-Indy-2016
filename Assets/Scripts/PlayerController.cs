@@ -66,8 +66,9 @@ public class PlayerController : MonoBehaviour, IInputListener
 	private List<GameObject> _floorColliders = new List<GameObject> ();
 
 	//Machines
-	//private MachinePlayerInteraction _currentMachine;
-	private bool _isInteracting;
+	private List<IMachine> _overlappingMachines = new List<IMachine> ();
+	private IMachine _currentMachine;
+	private bool _isInteracting = false;
 
 	//#############################################################################
 
@@ -197,7 +198,107 @@ public class PlayerController : MonoBehaviour, IInputListener
 		}
 
 		//####################################################################################
+		// interaction
+
+		if (!_isDead && !_gameController._isPaused && !_isDashing && !_isBumped) {
+
+			// B BUTTON DOWN
+			if (!_aButtonPreviouslyPressed && _aButtonCurrentlyPressed) {
+				//Debug.Log ("PlayerController:Update:B Button Down");
+
+				// PICK UP ITEM
+				if (_overlappingItems.Count > 0) {
+					//Debug.Log ("PlayerController:Update:B Button Down: Pick Up Item");
+					Item nearestItem = null;
+					float shortestDistance = float.MaxValue;
+
+					foreach (Item item in _overlappingItems) {
+						Vector3 vector = item.transform.position - this.transform.position;
+						float distance = vector.magnitude;
+
+						if (distance < shortestDistance) {
+							nearestItem = item;
+							shortestDistance = distance;
+						}
+					}
+
+					DropCurrentItem ();
+					PickUpItem (nearestItem);
+				}
+				// MACHINE INTERACTION
+				else if (_overlappingMachines.Count > 0) {
+					//Debug.Log ("PlayerController:Update:B Button Down: Machine Interaction");
+					IMachine nearestMachine = null;
+					float shortestDistance = float.MaxValue;
+
+					foreach (IMachine machine in _overlappingMachines) {
+						Vector3 vector = machine.transform.position - this.transform.position;
+						float distance = vector.magnitude;
+
+						if (distance < shortestDistance) {
+							nearestMachine = machine;
+							shortestDistance = distance;
+						}
+					}
+
+					if (!_isInteracting || _currentMachine != nearestMachine) {
+						StartInteractingWithMachine (nearestMachine);
+					}
+				}
+				// DROP ITEM
+				else {
+					//Debug.Log ("PlayerController:Update:B Button Down: Drop Item");
+					DropCurrentItem ();
+				}
+			}
+			// B BUTTON HELD DOWN
+			else if (_aButtonPreviouslyPressed && _aButtonCurrentlyPressed) {
+				//Debug.Log ("PlayerController:Update:B Button Held Down");
+
+				if (_isInteracting) {
+					if (_overlappingMachines.Count > 0) {
+						IMachine nearestMachine = null;
+						float shortestDistance = float.MaxValue;
+
+						foreach (IMachine machine in _overlappingMachines) {
+							Vector3 vector = machine.transform.position - this.transform.position;
+							float distance = vector.magnitude;
+
+							if (distance < shortestDistance) {
+								nearestMachine = machine;
+								shortestDistance = distance;
+							}
+						}
+
+						if (_currentMachine != nearestMachine) {
+							StopInteractingWithMachine ();
+						} else {
+							InteractWithMachine ();
+						}
+					} else {
+						StopInteractingWithMachine ();
+					}
+				}
+			}
+		}
+
+		/*if (!_isDead && !_gameController._isPaused) {
+			if (!_aButtonPreviouslyPressed && _aButtonCurrentlyPressed && !_isDashing && _overlappingItems.Count > 0) {
+				DropCurrentItem ();
+				PickUpItem ();
+				//Debug.Log ("PlayerController: OnHandleAButton: should have picked up item");
+			} else if (!_aButtonPreviouslyPressed && _aButtonCurrentlyPressed && !_isDashing) {
+				DropCurrentItem ();
+				//Debug.Log ("PlayerController: OnHandleAButton: should have dropped item");
+			}
+		}*/
+
+		//####################################################################################
 		//mashine interaction
+
+		/*if (_overlappingItems.Count > 0) {
+			Debug.Log ("PlayerController:Update:overlapping with item");
+		}*/
 
 		/*bool interruptInteraction = false;
 
@@ -270,37 +371,63 @@ public class PlayerController : MonoBehaviour, IInputListener
 		}
 	}
 
-	/*void OnCollisionExit2D (Collision2D collision)
-	{
-		
-	}*/
-
 	void OnTriggerEnter2D (Collider2D other)
 	{
-		if (other.tag == "Item") {
+		switch (other.tag) {
+		case "Floor":
+			if (!_floorColliders.Contains (other.gameObject)) {
+				_floorColliders.Add (other.gameObject);
+			}
+			break;
+		case "Item":
 			Item item = other.GetComponent<Item> ();
 
 			if (!_overlappingItems.Contains (item)) {
 				_overlappingItems.Add (item);
 				//Debug.Log ("PlayerController: OnTriggerEnter: overlapping with " + _item.itemName);
 			}
-		} else if (other.tag == "Floor") {
-			if (!_floorColliders.Contains (other.gameObject)) {
-				_floorColliders.Add (other.gameObject);
+			break;
+		case "Machine":
+			IMachine machine = other.GetComponent<IMachine> ();
+
+			if (machine.IsActive && !_overlappingMachines.Contains (machine)) {
+				_overlappingMachines.Add (machine);
 			}
+			break;
 		}
 	}
 
 	void OnTriggerExit2D (Collider2D other)
 	{
-		if (other.tag == "Item") {
+		switch (other.tag) {
+		case "Floor":
+			_floorColliders.Remove (other.gameObject);
+			break;
+		case "Item":
 			Item item = other.GetComponent<Item> ();
 
 			if (_overlappingItems.Contains (item)) {
 				_overlappingItems.Remove (item);
 			}
-		} else if (other.tag == "Floor") {
-			_floorColliders.Remove (other.gameObject);
+			break;
+		case "Machine":
+			IMachine machine = other.GetComponent<IMachine> ();
+
+			_overlappingMachines.Remove (machine);
+			break;
+		}
+	}
+
+	void OnTriggerStay2D (Collider2D other)
+	{
+		switch (other.tag) {
+		case "Machine":
+			IMachine machine = other.GetComponent<IMachine> ();
+
+			if (machine.IsActive && !_overlappingMachines.Contains (machine)) {
+				_overlappingMachines.Add (machine);
+			}
+			break;
 		}
 	}
 
@@ -331,10 +458,14 @@ public class PlayerController : MonoBehaviour, IInputListener
 
 	void IInputListener.OnHandleXButton (int joystickIndex, bool pressed)
 	{
+		if (joystickIndex != _controllerIndex) {
+			return;
+		}
+
 		_xButtonPreviouslyPressed = _xButtonCurrentlyPressed;
 		_xButtonCurrentlyPressed = pressed;
 
-		if (joystickIndex == _controllerIndex && !_isDead && !_gameController._isPaused) {
+		if (!_isDead && !_gameController._isPaused) {
 			if (!_xButtonPreviouslyPressed && _xButtonCurrentlyPressed && !_isDashing && _dashCooldown == 0) {
 				_isDashing = true;
 				_dashTimer = 0f;
@@ -345,23 +476,20 @@ public class PlayerController : MonoBehaviour, IInputListener
 
 	void IInputListener.OnHandleAButton (int joystickIndex, bool pressed)
 	{
+		if (joystickIndex != _controllerIndex) {
+			return;
+		}
+
 		_aButtonPreviouslyPressed = _aButtonCurrentlyPressed;
 		_aButtonCurrentlyPressed = pressed;
-
-		if (joystickIndex == _controllerIndex && !_isDead && !_gameController._isPaused) {
-			if (!_aButtonPreviouslyPressed && _aButtonCurrentlyPressed && !_isDashing && _overlappingItems.Count > 0) {
-				DropCurrentItem ();
-				PickUpItem ();
-				//Debug.Log ("PlayerController: OnHandleAButton: should have picked up item");
-			} else if (!_aButtonPreviouslyPressed && _aButtonCurrentlyPressed && !_isDashing) {
-				DropCurrentItem ();
-				//Debug.Log ("PlayerController: OnHandleAButton: should have dropped item");
-			}
-		}
 	}
 
 	void IInputListener.OnHandleBButton (int joystickIndex, bool pressed)
 	{
+		if (joystickIndex != _controllerIndex) {
+			return;
+		}
+
 		_bButtonPreviouslyPressed = _bButtonCurrentlyPressed;
 		_bButtonCurrentlyPressed = pressed;
 	}
@@ -380,6 +508,29 @@ public class PlayerController : MonoBehaviour, IInputListener
 
 		DropCurrentItem ();
 	}
+
+	public void DestroyCurrentItem ()
+	{
+		if (CurrentItem == null) {
+			return;
+		}
+
+		Destroy (_currentItemGO);
+
+		_uiCurrentItemText.text = "Item: None";
+		CurrentItem = null;
+		_currentItemGO = null;
+	}
+
+	public bool HasItem {
+		get {
+			if (CurrentItem == null) {
+				return false;
+			}
+
+			return true;
+		}
+	}
 		
 	//########################################################################
 	// Private Methods
@@ -397,10 +548,10 @@ public class PlayerController : MonoBehaviour, IInputListener
 		}
 	}
 
-	private void PickUpItem ()
+	private void PickUpItem (Item item)
 	{
 		if (CurrentItem == null) {
-			CurrentItem = _overlappingItems [0];
+			CurrentItem = item;
 			_currentItemGO = CurrentItem.gameObject;
 
 			_uiCurrentItemText.text = "Item: " + CurrentItem.name;
@@ -410,7 +561,35 @@ public class PlayerController : MonoBehaviour, IInputListener
 		}
 	}
 
-	private bool IsAboveVoid ()
+	private void StartInteractingWithMachine (IMachine machine)
+	{
+		if (_isInteracting) {
+			StopInteractingWithMachine ();
+		}
+
+		_isInteracting = true;
+		_currentMachine = machine;
+
+		//
+		InteractWithMachine ();
+	}
+
+	private void InteractWithMachine ()
+	{
+		if (!_isInteracting) {
+			return;
+		}
+
+		MachineInteractionState state = _currentMachine.Interact (this);
+	}
+
+	private void StopInteractingWithMachine ()
+	{
+		_isInteracting = false;
+		_currentMachine = null;
+	}
+
+	/*private bool IsAboveVoid ()
 	{
 		if (_floorColliders.Count == 0) {
 			return true;
@@ -437,8 +616,8 @@ public class PlayerController : MonoBehaviour, IInputListener
 			return true;
 		}
 
-		return false;*/
-	}
+		return false;
+	}*/
 
 	/*private bool CheckForInteractableMachine (out MachinePlayerInteraction interactableMachine)
 	{
