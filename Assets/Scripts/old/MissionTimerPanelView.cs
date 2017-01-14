@@ -1,11 +1,11 @@
-﻿using UnityEngine;
+﻿/*using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
 using System;
 
 public class MissionTimerPanelView : MonoBehaviour, IMissionListener
 {
-    private CanvasGroup canvasGroup;
+	/*private CanvasGroup canvasGroup;
     private Text missionNameText;
     private Text missionTimerText;
 
@@ -57,4 +57,4 @@ public class MissionTimerPanelView : MonoBehaviour, IMissionListener
     }
 
     
-}
+}*/

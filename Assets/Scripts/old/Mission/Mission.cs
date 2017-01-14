@@ -1,10 +1,10 @@
-﻿using UnityEngine;
+﻿/*using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
 public class Mission
 {
-    public string name { get; private set; }
+	/*public string name { get; private set; }
     public float timer { get; private set; }
     public bool success { get; private set; }
 
@@ -79,4 +79,4 @@ public class Mission
             listener.OnTimerUpdated(this);
         }
     }
-}
+}*/

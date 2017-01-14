@@ -1,10 +1,10 @@
-﻿using UnityEngine;
+﻿/*using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
 
 public class MissionResultPanelView : MonoBehaviour
 {
-    private CanvasGroup canvasGroup;
+	/*private CanvasGroup canvasGroup;
     private Text missionResultText;
 
     private bool active;
@@ -51,4 +51,4 @@ public class MissionResultPanelView : MonoBehaviour
             missionResultText.text = "Mission Failed!";
         }
     }
-}
+}*/

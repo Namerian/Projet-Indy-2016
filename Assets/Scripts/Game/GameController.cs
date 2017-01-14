@@ -6,21 +6,17 @@ using System.Collections.Generic;
 
 public class GameController : MonoBehaviour
 {
-	public static GameController Instance { get; private set; }
+	public float _gameTimer = 60f;
+
+	public float _shipHealth = 100f;
+
+	private bool _isGameRunning = false;
+
+	public bool _isPaused { get { return !_isGameRunning; } }
 
 	//=============================================
 
-	public float gameTimer { get; private set; }
-
-	public float shipHealth { get; private set; }
-
-	private bool isGameRunning;
-
-	public bool isPaused { get { return !isGameRunning; } }
-
-	//=============================================
-
-	private GameStateUIView gameStateUI;
+	private GameStateUIView _gameStateUI;
 
 	//==========================================================================================================
 	//
@@ -28,12 +24,6 @@ public class GameController : MonoBehaviour
 
 	void Awake ()
 	{
-		//
-		gameTimer = 40f;
-		shipHealth = 100f;
-		isGameRunning = false;
-
-		//
 		Global.GameController = this;
 	}
 
@@ -41,7 +31,7 @@ public class GameController : MonoBehaviour
 	void Start ()
 	{
 		//UI
-		gameStateUI = GameObject.Find ("UI/InGameUI/GameStateUI").GetComponent<GameStateUIView> ();
+		_gameStateUI = GameObject.Find ("UI/InGameUI/GameStateUI").GetComponent<GameStateUIView> ();
 
 		//
 		Global.LevelSelectionMenu.ToggleVisibility (true);
@@ -50,18 +40,18 @@ public class GameController : MonoBehaviour
 	// Update is called once per frame
 	void Update ()
 	{
-		if (isGameRunning) {
-			if (shipHealth <= 0 || gameTimer <= 0) {
-				isGameRunning = false;
+		if (_isGameRunning) {
+			if (_shipHealth <= 0 || _gameTimer <= 0) {
+				_isGameRunning = false;
 
-				bool _gameWon = false;
-				if (shipHealth > 0) {
-					_gameWon = true;
+				bool gameWon = false;
+				if (_shipHealth > 0) {
+					gameWon = true;
 				}
-				gameStateUI.ActivateGameResultView (_gameWon);
+				_gameStateUI.ActivateGameResultView (gameWon);
 			} else {
 				//update game timer
-				gameTimer = Mathf.Clamp (gameTimer - Time.deltaTime, 0f, float.MaxValue);
+				_gameTimer = Mathf.Clamp (_gameTimer - Time.deltaTime, 0f, float.MaxValue);
 			}
 		}
 	}
@@ -72,8 +62,8 @@ public class GameController : MonoBehaviour
 
 	public void ApplyDamageToShip (float damage)
 	{
-		if (damage > 0 && shipHealth > 0) {
-			shipHealth -= damage;
+		if (damage > 0 && _shipHealth > 0) {
+			_shipHealth -= damage;
 		}
 	}
 
@@ -87,7 +77,7 @@ public class GameController : MonoBehaviour
 
 		Event.Instance.SendOnGameStartedEvent ();
 
-		isGameRunning = true;
+		_isGameRunning = true;
 	}
 
 	public void LoadLevel (string levelName)

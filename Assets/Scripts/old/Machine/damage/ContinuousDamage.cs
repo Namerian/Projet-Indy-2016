@@ -1,9 +1,9 @@
-﻿using UnityEngine;
+﻿/*using UnityEngine;
 using System.Collections;
 
 public class ContinuousDamage : MonoBehaviour, IMachineListener
 {
-    public int damagePerSecond;
+	/*public int damagePerSecond;
 
     private GameController gameController;
     private MachineController machineController;
@@ -35,15 +35,15 @@ public class ContinuousDamage : MonoBehaviour, IMachineListener
 
     private void DoDammage()
     {
-        if (gameController.isPaused)
+        if (gameController._isPaused)
         {
             Invoke("DoDammage", 0f);
         }
-        else if (isActive && !gameController.isPaused)
+        else if (isActive && !gameController._isPaused)
         {
             gameController.ApplyDamageToShip(damagePerSecond);
 
             Invoke("DoDammage", 1f);
         }
     }
-}
+}*/

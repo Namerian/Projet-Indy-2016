@@ -20,5 +20,5 @@ public class Global
 
 	// Managers
 
-	public static MachineActivationManager MachineActivationManager{ get; set; }
+	//public static MachineActivationManager MachineActivationManager{ get; set; }
 }

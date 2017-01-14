@@ -1,9 +1,9 @@
-﻿using UnityEngine;
+﻿/*using UnityEngine;
 using System.Collections;
 
 public class UniqueDamage : MonoBehaviour, IMachineListener
 {
-	public int damage;
+	/*public int damage;
 	public float delay;
 
 	private GameController gameController;
@@ -41,7 +41,7 @@ public class UniqueDamage : MonoBehaviour, IMachineListener
 		}
 	}*/
 
-	public void OnStateChange (MachineController.MachineState state)
+/*public void OnStateChange (MachineController.MachineState state)
 	{
 		if (state == MachineController.MachineState.Active && !causedDamage) {
 			isActive = true;
@@ -53,10 +53,10 @@ public class UniqueDamage : MonoBehaviour, IMachineListener
 
     private void DoDammage()
     {
-        if (isActive && !gameController.isPaused)
+        if (isActive && !gameController._isPaused)
         {
             gameController.ApplyDamageToShip(damage);
             causedDamage = true;
         }
     }
-}
+}*/

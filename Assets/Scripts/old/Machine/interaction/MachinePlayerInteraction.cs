@@ -1,10 +1,10 @@
-﻿using UnityEngine;
+﻿/*using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
 
 public class MachinePlayerInteraction : MonoBehaviour, IMachineListener
 {
-	public float interactionTime;
+	/*public float interactionTime;
 	public bool requiresItem;
 	public string[] itemCategories;
 
@@ -35,7 +35,7 @@ public class MachinePlayerInteraction : MonoBehaviour, IMachineListener
 	// Update is called once per frame
 	void Update ()
 	{
-		if (!gameController.isPaused && isInteracting) {
+		if (!gameController._isPaused && isInteracting) {
 			if (interactionTimer >= interactionTime) {
 				machineController.SetState (MachineController.MachineState.Idle);
 
@@ -93,7 +93,7 @@ public class MachinePlayerInteraction : MonoBehaviour, IMachineListener
 				StartInteraction (player);
 			}
 		}*/
-	}
+/*}
 
 	public void OnEndInteraction (PlayerController player)
 	{
@@ -137,4 +137,4 @@ public class MachinePlayerInteraction : MonoBehaviour, IMachineListener
 		_image.fillAmount = 0f;
 		_image.color = Color.green;
 	}
-}
+}*/

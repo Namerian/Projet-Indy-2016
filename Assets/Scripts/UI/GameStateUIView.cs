@@ -35,11 +35,11 @@ public class GameStateUIView : MonoBehaviour
 	void Update ()
 	{
 		//timer
-		TimeSpan span = TimeSpan.FromSeconds (gameController.gameTimer);
+		TimeSpan span = TimeSpan.FromSeconds (gameController._gameTimer);
 		timeLeftText.text = string.Format ("{0:D2}:{1:D2}", span.Minutes, span.Seconds);
 
 		//slider
-		shipHealthSlider.value = gameController.shipHealth;
+		shipHealthSlider.value = gameController._shipHealth;
 	}
 
 	//==========================================================================================================

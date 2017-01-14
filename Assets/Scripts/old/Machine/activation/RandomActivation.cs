@@ -1,10 +1,10 @@
-﻿using UnityEngine;
+﻿/*using UnityEngine;
 using UnityEngine.SceneManagement;
 using System.Collections;
 
 public class RandomActivation : MonoBehaviour, IMachineListener
 {
-	public int weight;
+	/*public int weight;
 
 	private MachineController machineController;
 
@@ -28,7 +28,7 @@ public class RandomActivation : MonoBehaviour, IMachineListener
 	
 	}*/
 
-	public void Activate ()
+/*public void Activate ()
 	{
 		if (machineController.currentState == MachineController.MachineState.Idle) {
 			machineController.SetState (MachineController.MachineState.Active);
@@ -45,4 +45,4 @@ public class RandomActivation : MonoBehaviour, IMachineListener
 		}
 	}
 
-}
+}*/

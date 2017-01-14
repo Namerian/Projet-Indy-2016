@@ -1,10 +1,10 @@
-﻿using UnityEngine;
+﻿/*using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
 public class MachineController : MonoBehaviour
 {
-	public enum MachineState
+	/*public enum MachineState
 	{
 		//waiting to be activated
 		Idle,
@@ -62,7 +62,7 @@ public class MachineController : MonoBehaviour
 
 	public void SetState (MachineState state)
 	{
-		if (isStarted && !gameController.isPaused) {
+		if (isStarted && !gameController._isPaused) {
 			if (state != currentState) {
 				currentState = state;
 				OnStateChange ();
@@ -76,4 +76,4 @@ public class MachineController : MonoBehaviour
 			listener.OnStateChange (currentState);
 		}
 	}
-}
+}*/

@@ -9,7 +9,8 @@ public enum PlayerName
 	BluePlayer,
 	RedPlayer,
 	GreenPlayer,
-	PurplePlayer
+	PurplePlayer,
+	None
 }
 
 public class PlayerController : MonoBehaviour, IInputListener
@@ -37,12 +38,13 @@ public class PlayerController : MonoBehaviour, IInputListener
 
 	//
 	private bool _isDashing;
-	private bool _isBumped;
-
-
 	private float _dashTimer;
-	private float _bumpTimer;
 	private float _dashCooldown;
+
+	//
+	private bool _isBumped;
+	private float _bumpTimer;
+	private PlayerName _bumpingPlayer = PlayerName.None;
 
 	private Vector3 _movementAcceleration = new Vector3 ();
 	private Vector3 _dashAcceleration = new Vector3 ();
@@ -64,7 +66,7 @@ public class PlayerController : MonoBehaviour, IInputListener
 	private List<GameObject> _floorColliders = new List<GameObject> ();
 
 	//Machines
-	private MachinePlayerInteraction _currentMachine;
+	//private MachinePlayerInteraction _currentMachine;
 	private bool _isInteracting;
 
 	//#############################################################################
@@ -174,6 +176,7 @@ public class PlayerController : MonoBehaviour, IInputListener
 		if (_isBumped) {
 			if (_bumpTimer >= PlayerConstants.BUMP_DURATION) {
 				_isBumped = false;
+				_bumpingPlayer = PlayerName.None;
 			} else {
 				_bumpTimer += Time.deltaTime;
 				totalAcceleration += _bumpAcceleration;
@@ -196,7 +199,7 @@ public class PlayerController : MonoBehaviour, IInputListener
 		//####################################################################################
 		//mashine interaction
 
-		bool interruptInteraction = false;
+		/*bool interruptInteraction = false;
 
 		MachinePlayerInteraction nearestInteractableMachine;
 		bool hasHitInteractableMachine = CheckForInteractableMachine (out nearestInteractableMachine);
@@ -221,7 +224,7 @@ public class PlayerController : MonoBehaviour, IInputListener
 			_isInteracting = false;
 			_currentMachine.OnEndInteraction (this);
 			_currentMachine = null;
-		}
+		}*/
 	}
 
 	//########################################################################
@@ -254,18 +257,16 @@ public class PlayerController : MonoBehaviour, IInputListener
 
 					Debug.Log (_playerName + " has hit " + otherPlayer._playerName);
 
-					Vector3 pushDirection = otherPlayer.transform.position - this.transform.position;
-					pushDirection.Normalize ();
+					if (otherPlayer._playerName != _bumpingPlayer) {
+						Vector3 pushDirection = otherPlayer.transform.position - this.transform.position;
+						pushDirection.Normalize ();
 
-					otherPlayer.Bump (pushDirection);
+						otherPlayer.Bump (pushDirection, _playerName);
 
-					_isDashing = false;
+						_isDashing = false;
+					}
 				}
 			}
-
-			/*if (rayHit.collider != null) {
-				
-			}*/
 		}
 	}
 
@@ -311,7 +312,7 @@ public class PlayerController : MonoBehaviour, IInputListener
 	{
 		//Debug.Log ("PlayerController: OnHandleLeftStick: called");
 
-		if (joystickIndex == _controllerIndex && !_isDead && !_gameController.isPaused) {
+		if (joystickIndex == _controllerIndex && !_isDead && !_gameController._isPaused) {
 			//Debug.Log ("PlayerController " + joystickIndex + ": OnHandleLeftStick: called");
 
 			float force = Mathf.Clamp (stickState.magnitude, 0f, 1f) * PlayerConstants.MOVEMENT_MAX_ACCELERATION;
@@ -333,7 +334,7 @@ public class PlayerController : MonoBehaviour, IInputListener
 		_xButtonPreviouslyPressed = _xButtonCurrentlyPressed;
 		_xButtonCurrentlyPressed = pressed;
 
-		if (joystickIndex == _controllerIndex && !_isDead && !_gameController.isPaused) {
+		if (joystickIndex == _controllerIndex && !_isDead && !_gameController._isPaused) {
 			if (!_xButtonPreviouslyPressed && _xButtonCurrentlyPressed && !_isDashing && _dashCooldown == 0) {
 				_isDashing = true;
 				_dashTimer = 0f;
@@ -347,7 +348,7 @@ public class PlayerController : MonoBehaviour, IInputListener
 		_aButtonPreviouslyPressed = _aButtonCurrentlyPressed;
 		_aButtonCurrentlyPressed = pressed;
 
-		if (joystickIndex == _controllerIndex && !_isDead && !_gameController.isPaused) {
+		if (joystickIndex == _controllerIndex && !_isDead && !_gameController._isPaused) {
 			if (!_aButtonPreviouslyPressed && _aButtonCurrentlyPressed && !_isDashing && _overlappingItems.Count > 0) {
 				DropCurrentItem ();
 				PickUpItem ();
@@ -369,10 +370,12 @@ public class PlayerController : MonoBehaviour, IInputListener
 	// Public Methods
 	//########################################################################
 
-	public void Bump (Vector3 direction)
+	public void Bump (Vector3 direction, PlayerName bumpingPlayer)
 	{
 		_isBumped = true;
 		_bumpTimer = 0f;
+		_bumpingPlayer = bumpingPlayer;
+
 		_bumpAcceleration = direction * PlayerConstants.BUMP_VELOCITY;
 
 		DropCurrentItem ();
@@ -437,7 +440,7 @@ public class PlayerController : MonoBehaviour, IInputListener
 		return false;*/
 	}
 
-	private bool CheckForInteractableMachine (out MachinePlayerInteraction interactableMachine)
+	/*private bool CheckForInteractableMachine (out MachinePlayerInteraction interactableMachine)
 	{
 		Ray ray = new Ray (this.transform.position - new Vector3 (0f, -0.5f, 0f), this.transform.forward);
 		RaycastHit[] hits = Physics.RaycastAll (ray, _collider.radius * 2f);
@@ -467,5 +470,5 @@ public class PlayerController : MonoBehaviour, IInputListener
 		}
 
 		return hasHitInteractableMachine;
-	}
+	}*/
 }

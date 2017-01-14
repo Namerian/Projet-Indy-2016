@@ -1,10 +1,10 @@
-﻿using UnityEngine;
+﻿/*using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
 public class SpawnManager : MonoBehaviour
 {
-	public static SpawnManager Instance { get; private set; }
+	/*public static SpawnManager Instance { get; private set; }
 
 	private List<SpawnController> _spawnControllerList;
 
@@ -25,13 +25,13 @@ public class SpawnManager : MonoBehaviour
 
     }*/
 
-	// Update is called once per frame
-	/*void Update()
+// Update is called once per frame
+/*void Update()
     {
 
     }*/
 
-	public void RegisterSpawn (SpawnController spawn)
+/*public void RegisterSpawn (SpawnController spawn)
 	{
 		if (!_spawnControllerList.Contains (spawn)) {
 			_spawnControllerList.Add (spawn);
@@ -65,4 +65,4 @@ public class SpawnManager : MonoBehaviour
 			playerController.transform.position = new Vector3 (spawnPos.x, playerPos.y, spawnPos.z);
 		}
 	}
-}
+}*/

@@ -1,10 +1,10 @@
-﻿using UnityEngine;
+﻿/*using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
 public class MachineActivationManager : MonoBehaviour
 {
-	public float _StartingActivationDelay = 2f;
+	/*public float _StartingActivationDelay = 2f;
 	public float _MinActivationDelay = 4f;
 	public float _MaxActivationDelay = 8f;
 
@@ -96,7 +96,7 @@ public class MachineActivationManager : MonoBehaviour
 	{
 		while (true) {
 			if (delay > 0f) {
-				if (!Global.GameController.isPaused) {
+				if (!Global.GameController._isPaused) {
 					delay -= Time.deltaTime;
 				}
 				yield return null;
@@ -107,4 +107,4 @@ public class MachineActivationManager : MonoBehaviour
 			}
 		}
 	}
-}
+}*/

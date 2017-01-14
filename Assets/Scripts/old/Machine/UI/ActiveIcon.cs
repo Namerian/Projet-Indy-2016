@@ -1,10 +1,10 @@
-﻿using UnityEngine;
+﻿/*using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
 
 public class ActiveIcon : MonoBehaviour, IMachineListener
 {
-	public GameObject iconPrefab;
+	/*public GameObject iconPrefab;
 	public Vector3 relativePosition;
 
 	public float baseAlpha = 0.7f;
@@ -62,4 +62,4 @@ public class ActiveIcon : MonoBehaviour, IMachineListener
 		}
 	}
 
-}
+}*/

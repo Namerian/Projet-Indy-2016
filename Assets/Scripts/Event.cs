@@ -35,21 +35,37 @@ public class Event
 
 	public void SendOnGameStartedEvent ()
 	{
-		this.OnGameStartedEvent ();
+		OnGameStartedDelegate tmp = OnGameStartedEvent;
+
+		if (tmp != null) {
+			this.OnGameStartedEvent ();
+		}
 	}
 
 	public void SendOnGameEndedEvent ()
 	{
-		this.OnGameEndedEvent ();
+		OnGameEndedDelegate tmp = OnGameEndedEvent;
+
+		if (tmp != null) {
+			this.OnGameEndedEvent ();
+		}
 	}
 
 	public void SendOnGamePausedEvent ()
 	{
-		this.OnGamePausedEvent ();
+		OnGamePausedDelegate tmp = OnGamePausedEvent;
+
+		if (tmp != null) {
+			this.OnGamePausedEvent ();
+		}
 	}
 
 	public void SendOnGameUnpausedEvent ()
 	{
-		this.OnGameUnpausedEvent ();
+		OnGameUnpausedDelegate tmp = OnGameUnpausedEvent;
+
+		if (tmp != null) {
+			this.OnGameUnpausedEvent ();
+		}
 	}
 }
