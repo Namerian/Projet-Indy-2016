@@ -103,7 +103,7 @@ public class Helm : IMachine
 		Vector3 windForce = new Vector3 ();
 		windForce.x = UnityEngine.Random.Range (0f, 1f);
 		windForce.y = UnityEngine.Random.Range (0f, 1f);
-		Global.GameController.WindForce = windForce;
+		Global.GameController.WindForce = windForce.normalized;
 	}
 
 	private void Deactivate ()
