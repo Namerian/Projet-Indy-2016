@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-
 using System.Collections;
 using System.Collections.Generic;
 
@@ -24,6 +23,9 @@ public class PlayerController : MonoBehaviour, IInputListener
 	//
 	private CircleCollider2D _collider;
 	private Rigidbody2D _rigidbody;
+
+	private CanvasGroup _interactionCircleCanvasGroup;
+	private Image _interactionCircleImage;
 
 	// UI
 	private Text _uiCurrentItemText;
@@ -78,6 +80,12 @@ public class PlayerController : MonoBehaviour, IInputListener
 
 		_collider = this.GetComponent<CircleCollider2D> ();
 		_rigidbody = this.GetComponent<Rigidbody2D> ();
+
+		GameObject interactionCircle = this.transform.Find ("Canvas/InteractionCircle").gameObject;
+		_interactionCircleCanvasGroup = interactionCircle.GetComponent<CanvasGroup> ();
+		_interactionCircleImage = interactionCircle.GetComponent<Image> ();
+
+		_interactionCircleCanvasGroup.alpha = 0;
 	}
 
 	// Use this for initialization
@@ -570,6 +578,9 @@ public class PlayerController : MonoBehaviour, IInputListener
 		_isInteracting = true;
 		_currentMachine = machine;
 
+		_interactionCircleCanvasGroup.alpha = 1;
+		_interactionCircleImage.fillAmount = 0;
+
 		//
 		InteractWithMachine ();
 	}
@@ -581,12 +592,21 @@ public class PlayerController : MonoBehaviour, IInputListener
 		}
 
 		MachineInteractionState state = _currentMachine.Interact (this);
+
+		if (!state.isLegal) {
+			StopInteractingWithMachine ();
+			return;
+		}
+
+		_interactionCircleImage.fillAmount = state.progress;
 	}
 
 	private void StopInteractingWithMachine ()
 	{
 		_isInteracting = false;
 		_currentMachine = null;
+
+		_interactionCircleCanvasGroup.alpha = 0;
 	}
 
 	/*private bool IsAboveVoid ()
