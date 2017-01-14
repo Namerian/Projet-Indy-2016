@@ -72,6 +72,9 @@ public class PlayerController : MonoBehaviour, IInputListener
 	private IMachine _currentMachine;
 	private bool _isInteracting = false;
 
+	//
+	private Quaternion _quaternionUp;
+
 	//#############################################################################
 
 	void Awake ()
@@ -94,6 +97,7 @@ public class PlayerController : MonoBehaviour, IInputListener
 		_gameController.GetComponent<InputHandler> ().AddInputListener (this, InputHandler.JOYSTICK_NAMES [_controllerIndex]);
 
 		_spawnPosition = transform.position;
+		_quaternionUp = transform.rotation;
 
 		//
 		string playerUiPath = "";
@@ -338,6 +342,11 @@ public class PlayerController : MonoBehaviour, IInputListener
 			_currentMachine.OnEndInteraction (this);
 			_currentMachine = null;
 		}*/
+	}
+
+	void LateUpdate ()
+	{
+		_interactionCircleCanvasGroup.transform.parent.rotation = _quaternionUp;
 	}
 
 	//########################################################################
