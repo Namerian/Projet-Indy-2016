@@ -28,7 +28,8 @@ public class PlayerController : MonoBehaviour, IInputListener
 	private Image _interactionCircleImage;
 
 	// UI
-	private Text _uiCurrentItemText;
+	private Text _uiScoreText;
+	private CanvasGroup _uiItemCanvasGroup;
 
 	// Input
 	private bool _xButtonCurrentlyPressed;
@@ -48,6 +49,7 @@ public class PlayerController : MonoBehaviour, IInputListener
 	private float _bumpTimer;
 	private PlayerName _bumpingPlayer = PlayerName.None;
 
+	//
 	private Vector3 _movementAcceleration = new Vector3 ();
 	private Vector3 _dashAcceleration = new Vector3 ();
 	private Vector3 _bumpAcceleration = new Vector3 ();
@@ -71,6 +73,9 @@ public class PlayerController : MonoBehaviour, IInputListener
 	private List<IMachine> _overlappingMachines = new List<IMachine> ();
 	private IMachine _currentMachine;
 	private bool _isInteracting = false;
+
+	//
+	public int Score { get; private set; }
 
 	//
 	private Quaternion _quaternionUp;
@@ -104,21 +109,24 @@ public class PlayerController : MonoBehaviour, IInputListener
 
 		switch (_playerName) {
 		case PlayerName.BluePlayer:
-			playerUiPath = "UI/InGameUI/BluePlayerUI/CurrentItemText";
+			playerUiPath = "UI/InGameUI/BluePlayerUI/";
 			break;
 		case PlayerName.GreenPlayer:
-			playerUiPath = "UI/InGameUI/GreenPlayerUI/CurrentItemText";
+			playerUiPath = "UI/InGameUI/GreenPlayerUI/";
 			break;
 		case PlayerName.RedPlayer:
-			playerUiPath = "UI/InGameUI/RedPlayerUI/CurrentItemText";
+			playerUiPath = "UI/InGameUI/RedPlayerUI/";
 			break;
 		case PlayerName.PurplePlayer:
-			playerUiPath = "UI/InGameUI/YellowPlayerUI/CurrentItemText";
+			playerUiPath = "UI/InGameUI/PurplePlayerUI/";
 			break;
 		}
 
-		_uiCurrentItemText = GameObject.Find (playerUiPath).GetComponent<Text> ();
-		_uiCurrentItemText.text = "Item: None";
+		_uiScoreText = GameObject.Find (playerUiPath + "ScoreText").GetComponent<Text> ();
+		_uiScoreText.text = "Score: 0";
+
+		_uiItemCanvasGroup = GameObject.Find (playerUiPath + "ItemImage").GetComponent<CanvasGroup> ();
+		_uiItemCanvasGroup.alpha = 0;
 	}
 
 	//######################################################################################################
@@ -538,7 +546,7 @@ public class PlayerController : MonoBehaviour, IInputListener
 
 		Destroy (_currentItemGO);
 
-		_uiCurrentItemText.text = "Item: None";
+		_uiItemCanvasGroup.alpha = 1;
 		CurrentItem = null;
 		_currentItemGO = null;
 	}
@@ -552,6 +560,13 @@ public class PlayerController : MonoBehaviour, IInputListener
 			return true;
 		}
 	}
+
+	public void AddScore (int score)
+	{
+		Score += score;
+
+		_uiScoreText.text = "Score: " + Score;
+	}
 		
 	//########################################################################
 	// Private Methods
@@ -563,7 +578,7 @@ public class PlayerController : MonoBehaviour, IInputListener
 			CurrentItem.OnDrop ();
 			CurrentItem.transform.position = this.transform.position;
 
-			_uiCurrentItemText.text = "Item: None";
+			_uiItemCanvasGroup.alpha = 0;
 			CurrentItem = null;
 			_currentItemGO = null;
 		}
@@ -575,7 +590,7 @@ public class PlayerController : MonoBehaviour, IInputListener
 			CurrentItem = item;
 			_currentItemGO = CurrentItem.gameObject;
 
-			_uiCurrentItemText.text = "Item: " + CurrentItem.name;
+			_uiItemCanvasGroup.alpha = 1;
 
 			_overlappingItems.Remove (CurrentItem);
 			CurrentItem.OnPickUp ();

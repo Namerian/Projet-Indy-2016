@@ -6,6 +6,7 @@ public class Helm : IMachine
 {
 	public float _navigationTime = 2f;
 	public int _activationChance = 20;
+	public int _score = 15;
 
 	private CanvasGroup _dangerIconCanvasGroup;
 
@@ -62,6 +63,13 @@ public class Helm : IMachine
 			_navigationTimer += Time.deltaTime;
 			_navigatorInteraction.progress = _navigationTimer / _navigationTime;
 			_helperInteraction.progress = _navigationTimer / _navigationTime;
+
+			if (_navigationTimer >= _navigationTime) {
+				_navigatorInteraction.player.AddScore (_score);
+				_helperInteraction.player.AddScore (_score);
+
+				Deactivate ();
+			}
 		} else {
 			_navigationTimer = 0;
 		}
@@ -80,6 +88,7 @@ public class Helm : IMachine
 		} else if (!_isNavigatorPresent && player.HasItem && player.CurrentItem._itemType == ItemType.wheel) {
 			_isNavigatorPresent = true;
 			_navigatorInteraction = new MachineInteractionState (player, true);
+
 			return _navigatorInteraction;
 		} else if (!_isHelperPresent) {
 			_isHelperPresent = true;
@@ -97,6 +106,7 @@ public class Helm : IMachine
 		}
 
 		_isActive = true;
+		_navigationTimer = 0f;
 
 		_dangerIconCanvasGroup.alpha = 1;
 
@@ -109,6 +119,8 @@ public class Helm : IMachine
 	private void Deactivate ()
 	{
 		_isActive = false;
+		_isNavigatorPresent = false;
+		_isHelperPresent = false;
 
 		_dangerIconCanvasGroup.alpha = 0;
 

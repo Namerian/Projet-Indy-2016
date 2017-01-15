@@ -9,6 +9,7 @@ public class Boiler : IMachine
 	public float _pressionGainPerSecond = 1;
 	public float _interactionMultiplier = 3f;
 	public float _explosionDamage = 40f;
+	public int _scorePerSecond = 1;
 
 	private Slider _pressureSlider;
 	private CanvasGroup _dangerIconCanvasGroup;
@@ -18,9 +19,11 @@ public class Boiler : IMachine
 
 	private bool _isFirstPlayerInteracting = false;
 	private MachineInteractionState _firstPlayerInteraction;
+	private float _firstPlayerTimer = 0f;
 
 	private bool _isSecondPlayerInteracting = false;
 	private MachineInteractionState _secondPlayerInteraction;
+	private float _secondPlayerTimer = 0;
 
 	public override bool IsActive{ get { return true; } }
 
@@ -62,18 +65,30 @@ public class Boiler : IMachine
 			_secondPlayerInteraction.interactionUpdated = false;
 		}
 
+		//================================================================
+
 		bool pressureOverHalf = _pressure > _halfBasePressure;
 
+		// pressure <= 50% AND first player interacting
 		if (_pressure <= _halfBasePressure && _isFirstPlayerInteracting) {
 			float newPressure = _pressure - (_interactionMultiplier * _pressionGainPerSecond * Time.deltaTime);
 			_pressure = Mathf.Clamp (newPressure, 0f, _basePressure);
-		} else if (_pressure > _halfBasePressure && _isFirstPlayerInteracting && _isSecondPlayerInteracting) {
+			_firstPlayerTimer += Time.deltaTime;
+		}
+		// pressure > 50% AND two players interacting
+		else if (_pressure > _halfBasePressure && _isFirstPlayerInteracting && _isSecondPlayerInteracting) {
 			float newPressure = _pressure - (_interactionMultiplier * _pressionGainPerSecond * Time.deltaTime);
 			_pressure = Mathf.Clamp (newPressure, 0f, _basePressure);
-		} else {
+			_firstPlayerTimer += Time.deltaTime;
+			_secondPlayerTimer += Time.deltaTime;
+		}
+		// no player interacting
+		else {
 			float newPressure = _pressure + (_interactionMultiplier * _pressionGainPerSecond * Time.deltaTime);
 			_pressure = Mathf.Clamp (newPressure, 0f, _basePressure);
 		}
+
+		//===============================================================
 
 		_pressureSlider.value = _pressure / _basePressure;
 
@@ -82,6 +97,8 @@ public class Boiler : IMachine
 		} else if (!pressureOverHalf && _pressure > _halfBasePressure) {
 			_dangerIconCanvasGroup.alpha = 1;
 		}
+
+		//===============================================================
 
 		if (_pressure >= _basePressure) {
 			Global.GameController.ApplyDamageToShip (_explosionDamage);
@@ -94,6 +111,18 @@ public class Boiler : IMachine
 			_pressureSlider.value = 0;
 			_dangerIconCanvasGroup.alpha = 0;
 		}
+
+		//===============================================================
+
+		if (_isFirstPlayerInteracting && _firstPlayerTimer >= 1f) {
+			_firstPlayerTimer -= 1f;
+			_firstPlayerInteraction.player.AddScore (_scorePerSecond);
+		}
+
+		if (_isSecondPlayerInteracting && _secondPlayerTimer >= 1f) {
+			_secondPlayerTimer -= 1f;
+			_secondPlayerInteraction.player.AddScore (_scorePerSecond);
+		}
 	}
 
 	public override MachineInteractionState Interact (PlayerController player)
@@ -105,11 +134,13 @@ public class Boiler : IMachine
 		} else if (!_isFirstPlayerInteracting && player.HasItem && player.CurrentItem._itemType == ItemType.wheel) {
 			_isFirstPlayerInteracting = true;
 			_firstPlayerInteraction = new MachineInteractionState (player, true);
+			_firstPlayerTimer = 0f;
 
 			return _firstPlayerInteraction;
 		} else if (!_isSecondPlayerInteracting) {
 			_isSecondPlayerInteracting = true;
 			_secondPlayerInteraction = new MachineInteractionState (player, true);
+			_secondPlayerTimer = 0f;
 
 			return _secondPlayerInteraction;
 		}

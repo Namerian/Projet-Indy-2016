@@ -9,6 +9,8 @@ public class Canon : IMachine
 	public float _loadingTime = 1f;
 	public float _damage = 15f;
 	public int _activationChance = 20;
+	public int _loadingScore = 15;
+	public int _firingScore = 5;
 
 	private CanvasGroup _dangerIconCanvasGroup;
 	private CanvasGroup _timerCircleCanvasGroup;
@@ -80,10 +82,12 @@ public class Canon : IMachine
 			if (!player.HasItem || player.CurrentItem._itemType != ItemType.torch) {
 				return new MachineInteractionState (player, false);
 			}
+
 			Debug.Log ("Canon:Interact:canon fired");
 
 			Deactivate ();
 
+			player.AddScore (_firingScore);
 			MachineInteractionState result = new MachineInteractionState (player, true);
 			result.progress = 1;
 			return result;
@@ -95,6 +99,7 @@ public class Canon : IMachine
 			if (_loadingInteraction.progress >= 1) {
 				_loadingInteraction.progress = 1;
 				_ballLoaded = true;
+				player.AddScore (_loadingScore);
 				player.DestroyCurrentItem ();
 				Debug.Log ("Canon:Interact:ball loaded");
 			}

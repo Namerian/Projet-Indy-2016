@@ -7,6 +7,7 @@ public class Planks : IMachine
 	public float _repairTime = 2;
 	public float _damagePerSecond = 2;
 	public int _activationChance = 20;
+	public int _repairScore = 15;
 
 	private SpriteRenderer _renderer;
 
@@ -51,6 +52,20 @@ public class Planks : IMachine
 
 			_repairInteraction.interactionUpdated = false;
 		}
+
+		if (_isRepairing) {
+			_repairTimer += Time.deltaTime;
+			_repairInteraction.progress = _repairTimer / _repairTime;
+
+			if (_repairInteraction.progress >= 1f) {
+				_repairInteraction.progress = 1f;
+				_repairInteraction.player.AddScore (_repairScore);
+
+				Deactivate ();
+
+				Debug.Log ("Planks:Interaction:planks repaired!");
+			}
+		}
 	}
 
 	public override MachineInteractionState Interact (PlayerController player)
@@ -60,17 +75,7 @@ public class Planks : IMachine
 		}
 
 		if (_isRepairing && _repairInteraction.player == player) {
-			_repairTimer += Time.deltaTime;
-			_repairInteraction.progress = _repairTimer / _repairTime;
 			_repairInteraction.interactionUpdated = true;
-
-			if (_repairInteraction.progress >= 1f) {
-				_repairInteraction.progress = 1f;
-
-				Deactivate ();
-
-				Debug.Log ("Planks:Interaction:planks repaired!");
-			}
 
 			return _repairInteraction;
 		} else {
