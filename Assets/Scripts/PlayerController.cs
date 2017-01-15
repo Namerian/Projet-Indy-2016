@@ -92,7 +92,6 @@ public class PlayerController : MonoBehaviour, IInputListener, ILightEmitter
 		GameObject interactionCircle = this.transform.Find ("Canvas/InteractionCircle").gameObject;
 		_interactionCircleCanvasGroup = interactionCircle.GetComponent<CanvasGroup> ();
 		_interactionCircleImage = interactionCircle.GetComponent<Image> ();
-
 		_interactionCircleCanvasGroup.alpha = 0;
 	}
 
@@ -127,6 +126,9 @@ public class PlayerController : MonoBehaviour, IInputListener, ILightEmitter
 
 		_uiItemCanvasGroup = GameObject.Find (playerUiPath + "ItemImage").GetComponent<CanvasGroup> ();
 		_uiItemCanvasGroup.alpha = 0;
+
+		//
+		Global.GameController.RegisterPlayer (this);
 	}
 
 	//######################################################################################################
@@ -204,7 +206,7 @@ public class PlayerController : MonoBehaviour, IInputListener, ILightEmitter
 			}
 		}
 
-		if (_gameController.WindForce.magnitude > 0) {
+		if (!Global.GameController.IsPaused && _gameController.WindForce.magnitude > 0) {
 			totalAcceleration += _gameController.WindForce;
 		}
 
@@ -224,7 +226,7 @@ public class PlayerController : MonoBehaviour, IInputListener, ILightEmitter
 		//####################################################################################
 		// interaction
 
-		if (!_isDead && !_gameController._isPaused && !_isDashing && !_isBumped) {
+		if (!_isDead && !_gameController.IsPaused && !_isDashing && !_isBumped) {
 
 			// B BUTTON DOWN
 			if (!_aButtonPreviouslyPressed && _aButtonCurrentlyPressed) {
@@ -468,7 +470,7 @@ public class PlayerController : MonoBehaviour, IInputListener, ILightEmitter
 	{
 		//Debug.Log ("PlayerController: OnHandleLeftStick: called");
 
-		if (joystickIndex == _controllerIndex && !_isDead && !_gameController._isPaused) {
+		if (joystickIndex == _controllerIndex && !_isDead && !_gameController.IsPaused) {
 			//Debug.Log ("PlayerController " + joystickIndex + ": OnHandleLeftStick: called");
 
 			float force = Mathf.Clamp (stickState.magnitude, 0f, 1f) * PlayerConstants.MOVEMENT_MAX_ACCELERATION;
@@ -494,7 +496,7 @@ public class PlayerController : MonoBehaviour, IInputListener, ILightEmitter
 		_xButtonPreviouslyPressed = _xButtonCurrentlyPressed;
 		_xButtonCurrentlyPressed = pressed;
 
-		if (!_isDead && !_gameController._isPaused) {
+		if (!_isDead && !_gameController.IsPaused) {
 			if (!_xButtonPreviouslyPressed && _xButtonCurrentlyPressed && !_isDashing && _dashCooldown == 0) {
 				_isDashing = true;
 				_dashTimer = 0f;

@@ -6,19 +6,25 @@ using System.Collections.Generic;
 
 public class GameController : MonoBehaviour
 {
-	public float _gameTimer = 60f;
+	public float _gameTime = 60f;
+	public float _baseShipHealth = 100f;
 
-	public float _shipHealth = 100f;
+	private GameStateUIView _gameStateUI;
 
 	private bool _isGameRunning = false;
+	private bool _isGameInEndPhase = false;
+	public float _gameTimer;
 
-	public bool _isPaused { get { return !_isGameRunning; } }
-
-	public Vector3 WindForce { get; set; }
+	private List<PlayerController> _players;
+	private float _shipHealth;
 
 	//=============================================
 
-	private GameStateUIView _gameStateUI;
+	public bool IsPaused { get { return !_isGameRunning; } }
+
+	public bool IsGameInEndPhase{ get { return _isGameInEndPhase; } }
+
+	public Vector3 WindForce { get; set; }
 
 	//==========================================================================================================
 	//
@@ -36,6 +42,11 @@ public class GameController : MonoBehaviour
 		_gameStateUI = GameObject.Find ("UI/InGameUI/GameStateUI").GetComponent<GameStateUIView> ();
 
 		//
+		_players = new List<PlayerController> ();
+		_shipHealth = _baseShipHealth;
+		_gameTimer = _gameTime;
+
+		//
 		Global.LevelSelectionMenu.ToggleVisibility (true);
 	}
 
@@ -43,17 +54,37 @@ public class GameController : MonoBehaviour
 	void Update ()
 	{
 		if (_isGameRunning) {
-			if (_shipHealth <= 0 || _gameTimer <= 0) {
+
+			if (_isGameInEndPhase) {
+				
+			} else if (_shipHealth <= 0f) {
 				_isGameRunning = false;
 
-				bool gameWon = false;
-				if (_shipHealth > 0) {
-					gameWon = true;
+				List<PlayerController> winners = new List<PlayerController> ();
+				List<PlayerController> losers = new List<PlayerController> ();
+
+				foreach (PlayerController player in _players) {
+					if (player.HasItem && player.CurrentItem._itemType == ItemType.parachute) {
+						winners.Add (player);
+					} else {
+						losers.Add (player);
+					}
 				}
-				_gameStateUI.ActivateGameResultView (gameWon);
+
+				_gameStateUI.ActivateGameResultView (winners, losers);
+			} else if (_gameTimer <= 0f) {
+
+				if (_shipHealth > _baseShipHealth * 0.5f) {
+					_isGameRunning = false;
+					_gameStateUI.ActivateGameResultView (_players, new List<PlayerController> ());
+				} else {
+					//*****
+					_isGameRunning = false;
+					_gameStateUI.ActivateGameResultView (new List<PlayerController> (), _players);
+				}
 			} else {
-				//update game timer
 				_gameTimer = Mathf.Clamp (_gameTimer - Time.deltaTime, 0f, float.MaxValue);
+				_gameStateUI.UpdateTime (_gameTimer);
 			}
 		}
 	}
@@ -66,7 +97,20 @@ public class GameController : MonoBehaviour
 	{
 		if (damage > 0 && _shipHealth > 0) {
 			_shipHealth -= damage;
+			_gameStateUI.UpdateShipHealth (_shipHealth);
 		}
+	}
+
+	public void RegisterPlayer (PlayerController player)
+	{
+		if (!_players.Contains (player)) {
+			_players.Add (player);
+		}
+	}
+
+	public List<PlayerController> GetAllPlayers ()
+	{
+		return _players;
 	}
 
 	//==========================================================================================================
