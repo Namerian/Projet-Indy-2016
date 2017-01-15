@@ -7,7 +7,7 @@ public class Shadow : MonoBehaviour
 	private SpriteRenderer _renderer;
 
 	private bool _isActive = true;
-	private List<ILightEmitter> _lightEmitters;
+	//private List<ILightEmitter> _lightEmitters;
 
 	// Use this for initialization
 	void Start ()
@@ -15,28 +15,30 @@ public class Shadow : MonoBehaviour
 		_renderer = this.GetComponent<SpriteRenderer> ();
 		_renderer.enabled = true;
 
-		_lightEmitters = new List<ILightEmitter> ();
+		/*_lightEmitters = new List<ILightEmitter> ();
 
 		Bounds bounds = _renderer.bounds;
+		RaycastHit2D[] hits = Physics2D.BoxCastAll (bounds.center, bounds.extents * 2, 0f, Vector2.zero);
 
-		GameObject[] machines = GameObject.FindGameObjectsWithTag ("Machine");
+		foreach (RaycastHit2D hit in hits) {
+			if (hit.transform.tag == "Machine" && bounds.Contains (hit.transform.position)) {
+				ILightEmitter emitter = hit.transform.GetComponent<ILightEmitter> ();
 
-		foreach (GameObject machine in machines) {
-			ILightEmitter emitter = machine.GetComponent<ILightEmitter> ();
-
-			if (emitter != null && bounds.Contains (machine.transform.position) && !_lightEmitters.Contains (emitter)) {
-				_lightEmitters.Add (emitter);
-				//Debug.Log ("Shadow:Start:found a lamp");
+				if (emitter != null && !_lightEmitters.Contains (emitter)) {
+					_lightEmitters.Add (emitter);
+					Debug.Log ("Shadow:Start:found a lamp");
+				}
 			}
-		}
+		}*/
 	}
 	
 	// Update is called once per frame
 	void Update ()
 	{
 		bool foundActiveEmitter = false;
+		List<ILightEmitter> lightEmitters = CheckForLights ();
 
-		foreach (ILightEmitter emitter in _lightEmitters) {
+		foreach (ILightEmitter emitter in lightEmitters) {
 			if (emitter.IsEmittingLight ()) {
 				foundActiveEmitter = true;
 				break;
@@ -52,21 +54,40 @@ public class Shadow : MonoBehaviour
 		}
 	}
 
-	void OnCollisionEnter2D (Collision2D collision)
+	/*void OnCollisionEnter2D (Collision2D collision)
 	{
 		ILightEmitter emitter = collision.gameObject.GetComponent<ILightEmitter> ();
 
 		if (emitter != null && !_lightEmitters.Contains (emitter)) {
 			_lightEmitters.Add (emitter);
 		}
-	}
+	}*/
 
-	void OnCollisionExit2D (Collision2D collision)
+	/*void OnCollisionExit2D (Collision2D collision)
 	{
 		ILightEmitter emitter = collision.gameObject.GetComponent<ILightEmitter> ();
 
 		if (emitter != null) {
 			_lightEmitters.Remove (emitter);
 		}
+	}*/
+
+	private List<ILightEmitter> CheckForLights ()
+	{
+		List<ILightEmitter> lightEmitters = new List<ILightEmitter> ();
+		Bounds bounds = _renderer.bounds;
+		RaycastHit2D[] hits = Physics2D.BoxCastAll (bounds.center, bounds.extents * 2, 0f, Vector2.zero);
+
+		foreach (RaycastHit2D hit in hits) {
+			if (bounds.Contains (hit.transform.position)) {
+				ILightEmitter emitter = hit.transform.GetComponent<ILightEmitter> ();
+
+				if (emitter != null && !lightEmitters.Contains (emitter)) {
+					lightEmitters.Add (emitter);
+				}
+			}
+		}
+
+		return lightEmitters;
 	}
 }

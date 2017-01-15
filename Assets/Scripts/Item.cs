@@ -14,7 +14,7 @@ public enum ItemType
 	parachute
 }
 
-public class Item : MonoBehaviour
+public class Item : MonoBehaviour, ILightEmitter
 {
 	private static Dictionary<ItemType, int> ITEM_AMOUNT;
 
@@ -71,5 +71,14 @@ public class Item : MonoBehaviour
 	{
 		_itemCollider.enabled = true;
 		_itemRenderer.enabled = true;
+	}
+
+	public bool IsEmittingLight ()
+	{
+		if (_itemRenderer.enabled && _itemType == ItemType.torch) {
+			return true;
+		}
+
+		return false;
 	}
 }
