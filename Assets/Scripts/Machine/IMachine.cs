@@ -20,6 +20,9 @@ public struct MachineInteractionState
 
 public abstract class IMachine : MonoBehaviour
 {
+	protected const float _activationIntervalMin = 2f;
+	protected const float _activationIntervalMax = 4f;
+
 	public abstract bool IsActive{ get; }
 
 	public abstract MachineInteractionState Interact (PlayerController player);

@@ -2,39 +2,29 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Planks : IMachine
+public class Lamp : IMachine, ILightEmitter
 {
-	public float _repairTime = 2;
-	public float _damagePerSecond = 2;
-	public int _activationChance = 20;
+	public float _repairTime = 1f;
 	public int _repairScore = 15;
-
-	private SpriteRenderer _renderer;
+	public int _activationChance = 15;
 
 	private CanvasGroup _dangerIconCanvasGroup;
 
 	private bool _isActive = false;
 
 	private bool _isRepairing = false;
-	private float _repairTimer = 0;
 	private MachineInteractionState _repairInteraction;
+	private float _repairTimer = 0f;
 
 	public override bool IsActive{ get { return _isActive; } }
-
-	void Awake ()
-	{
-		_renderer = this.GetComponent<SpriteRenderer> ();
-		_renderer.enabled = false;
-
-		GameObject dangerIcon = this.transform.Find ("Canvas/DangerIcon").gameObject;
-		_dangerIconCanvasGroup = dangerIcon.GetComponent<CanvasGroup> ();
-
-		_dangerIconCanvasGroup.alpha = 0;
-	}
 
 	// Use this for initialization
 	void Start ()
 	{
+		GameObject dangerIcon = this.transform.Find ("Canvas/DangerIcon").gameObject;
+		_dangerIconCanvasGroup = dangerIcon.GetComponent<CanvasGroup> ();
+		_dangerIconCanvasGroup.alpha = 0;
+
 		Invoke ("RandomActivation", UnityEngine.Random.Range (_activationIntervalMin, _activationIntervalMax));
 	}
 	
@@ -79,7 +69,7 @@ public class Planks : IMachine
 
 			return _repairInteraction;
 		} else {
-			if (!player.HasItem || player.CurrentItem._itemType != ItemType.hammer || _isRepairing) {
+			if (!player.HasItem || player.CurrentItem._itemType != ItemType.torch || _isRepairing) {
 				return new MachineInteractionState (player, false);
 			}
 
@@ -91,6 +81,15 @@ public class Planks : IMachine
 		}
 	}
 
+	public bool IsEmittingLight ()
+	{
+		if (_isActive) {
+			return false;
+		}
+
+		return true;
+	}
+
 	private void Activate ()
 	{
 		if (_isActive) {
@@ -98,32 +97,18 @@ public class Planks : IMachine
 		}
 
 		_isActive = true;
-		_renderer.enabled = true;
 
 		_dangerIconCanvasGroup.alpha = 1;
-
-		Invoke ("DoDamage", 1f);
 	}
 
 	private void Deactivate ()
 	{
 		_isActive = false;
-		_renderer.enabled = false;
-
 		_isRepairing = false;
 
 		_dangerIconCanvasGroup.alpha = 0;
 
-		Invoke ("RandomActivation", UnityEngine.Random.Range (1f, 2f));
-	}
-
-	private void DoDamage ()
-	{
-		if (_isActive) {
-			Global.GameController.ApplyDamageToShip (_damagePerSecond);
-
-			Invoke ("DoDamage", 1f);
-		}
+		Invoke ("RandomActivation", UnityEngine.Random.Range (_activationIntervalMin, _activationIntervalMax));
 	}
 
 	private void RandomActivation ()

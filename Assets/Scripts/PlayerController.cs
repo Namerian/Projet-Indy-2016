@@ -12,7 +12,7 @@ public enum PlayerName
 	None
 }
 
-public class PlayerController : MonoBehaviour, IInputListener
+public class PlayerController : MonoBehaviour, IInputListener, ILightEmitter
 {
 	public PlayerName _playerName;
 	public int _controllerIndex = 0;
@@ -566,6 +566,15 @@ public class PlayerController : MonoBehaviour, IInputListener
 		Score += score;
 
 		_uiScoreText.text = "Score: " + Score;
+	}
+
+	public bool IsEmittingLight ()
+	{
+		if (HasItem && CurrentItem._itemType == ItemType.torch) {
+			return true;
+		}
+
+		return false;
 	}
 		
 	//########################################################################
