@@ -20,8 +20,10 @@ public class Chest : IMachine
 
 	private SpriteRenderer _renderer;
 
-	private bool _isActive = false;
 	private Dictionary<ItemType, int> _dropAmounts;
+
+	private bool _isActive = false;
+	private ItemType _itemToSpawn;
 
 	public override bool IsActive{ get { return _isActive; } }
 
@@ -93,13 +95,13 @@ public class Chest : IMachine
 
 	private void RandomActivation ()
 	{
-		if (_isActive) {
+		if (_isActive || Global.GameController.IsPaused) {
 			return;
 		}
 
 		int diceRoll = UnityEngine.Random.Range (1, 100);
 
-		if (diceRoll <= _activationChance) {
+		if (diceRoll <= _activationChance && ChooseItemToSpawn ()) {
 			Activate ();
 		} else {
 			Invoke ("RandomActivation", UnityEngine.Random.Range (1f, 2f));
@@ -108,22 +110,7 @@ public class Chest : IMachine
 
 	private bool SpawnItem ()
 	{
-		List<ItemType> availableTypes = new List<ItemType> ();
-
-		foreach (KeyValuePair<ItemType, int> entry in _dropAmounts) {
-			if (Item.GetItemAmount (entry.Key) < entry.Value) {
-				availableTypes.Add (entry.Key);
-			}
-		}
-
-		if (availableTypes.Count == 0) {
-			return false;
-		}
-
-		int diceRoll = UnityEngine.Random.Range (0, availableTypes.Count - 1);
-		ItemType chosenItem = availableTypes [diceRoll];
-
-		switch (chosenItem) {
+		switch (_itemToSpawn) {
 		case ItemType.canonball:
 			Instantiate (Resources.Load ("Prefabs/Items/Canonball"), this.transform.position, Quaternion.identity);
 			break;
@@ -145,7 +132,29 @@ public class Chest : IMachine
 		case ItemType.wheel:
 			Instantiate (Resources.Load ("Prefabs/Items/Wheel"), this.transform.position, Quaternion.identity);
 			break;
+		default:
+			return false;
 		}
+
+		return true;
+	}
+
+	private bool ChooseItemToSpawn ()
+	{
+		List<ItemType> availableTypes = new List<ItemType> ();
+
+		foreach (KeyValuePair<ItemType, int> entry in _dropAmounts) {
+			if (Item.GetItemAmount (entry.Key) < entry.Value) {
+				availableTypes.Add (entry.Key);
+			}
+		}
+
+		if (availableTypes.Count == 0) {
+			return false;
+		}
+
+		int diceRoll = UnityEngine.Random.Range (0, availableTypes.Count - 1);
+		_itemToSpawn = availableTypes [diceRoll];
 
 		return true;
 	}

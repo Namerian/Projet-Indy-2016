@@ -113,7 +113,7 @@ public class Lamp : IMachine, ILightEmitter
 
 	private void RandomActivation ()
 	{
-		if (_isActive) {
+		if (_isActive || Global.GameController.IsPaused) {
 			return;
 		}
 

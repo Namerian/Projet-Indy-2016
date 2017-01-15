@@ -21,20 +21,16 @@ public class Planks : IMachine
 
 	public override bool IsActive{ get { return _isActive; } }
 
-	void Awake ()
+	// Use this for initialization
+	void Start ()
 	{
 		_renderer = this.GetComponent<SpriteRenderer> ();
 		_renderer.enabled = false;
 
 		GameObject dangerIcon = this.transform.Find ("Canvas/DangerIcon").gameObject;
 		_dangerIconCanvasGroup = dangerIcon.GetComponent<CanvasGroup> ();
-
 		_dangerIconCanvasGroup.alpha = 0;
-	}
 
-	// Use this for initialization
-	void Start ()
-	{
 		Invoke ("RandomActivation", UnityEngine.Random.Range (_activationIntervalMin, _activationIntervalMax));
 	}
 	
@@ -108,13 +104,12 @@ public class Planks : IMachine
 	private void Deactivate ()
 	{
 		_isActive = false;
-		_renderer.enabled = false;
-
 		_isRepairing = false;
 
+		_renderer.enabled = false;
 		_dangerIconCanvasGroup.alpha = 0;
 
-		Invoke ("RandomActivation", UnityEngine.Random.Range (1f, 2f));
+		Invoke ("RandomActivation", UnityEngine.Random.Range (_activationIntervalMin, _activationIntervalMax));
 	}
 
 	private void DoDamage ()
@@ -128,7 +123,7 @@ public class Planks : IMachine
 
 	private void RandomActivation ()
 	{
-		if (_isActive) {
+		if (_isActive || Global.GameController.IsPaused) {
 			return;
 		}
 

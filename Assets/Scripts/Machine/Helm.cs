@@ -131,7 +131,7 @@ public class Helm : IMachine
 
 	private void RandomActivation ()
 	{
-		if (_isActive) {
+		if (_isActive || Global.GameController.IsPaused) {
 			return;
 		}
 

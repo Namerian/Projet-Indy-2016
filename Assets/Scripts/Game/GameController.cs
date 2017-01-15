@@ -95,7 +95,7 @@ public class GameController : MonoBehaviour
 
 	public void ApplyDamageToShip (float damage)
 	{
-		if (damage > 0 && _shipHealth > 0) {
+		if (_isGameRunning && damage > 0 && _shipHealth > 0) {
 			_shipHealth -= damage;
 			_gameStateUI.UpdateShipHealth (_shipHealth);
 		}

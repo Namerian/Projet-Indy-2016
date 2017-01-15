@@ -147,7 +147,7 @@ public class Canon : IMachine
 
 	private void RandomActivation ()
 	{
-		if (_isActive) {
+		if (_isActive || Global.GameController.IsPaused) {
 			return;
 		}
 
