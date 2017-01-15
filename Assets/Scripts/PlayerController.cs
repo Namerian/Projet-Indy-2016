@@ -139,7 +139,7 @@ public class PlayerController : MonoBehaviour, IInputListener
 		//####################################################################################
 		//death
 		if (!_isDead && !_isDashing) {
-			if (_floorColliders.Count == 0) {
+			if (_floorColliders.Count == 0 && this.transform.position != _spawnPosition) {
 				_isDead = true;
 				_respawnTimer = 0f;
 
