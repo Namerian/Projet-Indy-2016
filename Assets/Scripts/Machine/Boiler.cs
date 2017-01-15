@@ -71,6 +71,7 @@ public class Boiler : IMachine
 
 		// pressure <= 50% AND first player interacting
 		if (_pressure <= _halfBasePressure && _isFirstPlayerInteracting) {
+			Debug.Log ("Boiler:Update:pressure < 50% AND firstPlayerInteracting");
 			float newPressure = _pressure - (_interactionMultiplier * _pressionGainPerSecond * Time.deltaTime);
 			_pressure = Mathf.Clamp (newPressure, 0f, _basePressure);
 			_firstPlayerTimer += Time.deltaTime;
@@ -84,6 +85,7 @@ public class Boiler : IMachine
 		}
 		// no player interacting
 		else {
+			Debug.Log ("Boiler:Update:no player interacting");
 			float newPressure = _pressure + (_interactionMultiplier * _pressionGainPerSecond * Time.deltaTime);
 			_pressure = Mathf.Clamp (newPressure, 0f, _basePressure);
 		}
@@ -128,8 +130,10 @@ public class Boiler : IMachine
 	public override MachineInteractionState Interact (PlayerController player)
 	{
 		if (_isFirstPlayerInteracting && _firstPlayerInteraction.player == player) {
+			_firstPlayerInteraction.interactionUpdated = true;
 			return _firstPlayerInteraction;
 		} else if (_isSecondPlayerInteracting && _secondPlayerInteraction.player == player) {
+			_secondPlayerInteraction.interactionUpdated = true;
 			return _secondPlayerInteraction;
 		} else if (!_isFirstPlayerInteracting && player.HasItem && player.CurrentItem._itemType == ItemType.wheel) {
 			_isFirstPlayerInteracting = true;
