@@ -5,6 +5,8 @@ using System.IO;
 
 public class LevelSelectionMenu : MonoBehaviour, IInputListener
 {
+	private const string LEVEL_FILE_NAME = "Levels.ini";
+
 	private CanvasGroup CanvasGroup{ get; set; }
 
 	private bool _isActive;
@@ -57,7 +59,36 @@ public class LevelSelectionMenu : MonoBehaviour, IInputListener
 
 	private void PopulateLevelList ()
 	{
-		DirectoryInfo levelDirectoryPath = new DirectoryInfo (Application.dataPath + "/Scenes/Levels");
+		string[] scenes = ReadSceneNames.singleton.scenes;
+
+		if (scenes == null) {
+			Debug.Log ("scenes == null");
+		} else if (scenes.Length == 0) {
+			Debug.Log ("scenes.length == 0");
+		} else {
+			Debug.Log (scenes.Length + " scenes loaded");
+		}
+
+		List<string> levelNames = new List<string> ();
+
+		for (int i = 0; i < scenes.Length; i++) {
+			string levelName = scenes [i];
+			if (levelName.Contains ("Level")) {
+				levelNames.Add (levelName);
+			}
+		}
+
+		Debug.Log (levelNames.Count + " levels loaded");
+
+		foreach (string levelName in levelNames) {
+			GameObject menuItemObj = (GameObject)Instantiate (Resources.Load ("Prefabs/UI/MenuLevelItem"), _levelListPanel);
+			MenuLevelItem menuItemScript = menuItemObj.GetComponent<MenuLevelItem> ();
+			menuItemScript.Text.text = levelName;
+			_menuLevelItemList.Add (menuItemScript);
+		}
+
+		/*DirectoryInfo levelDirectoryPath = new DirectoryInfo (Application.dataPath + "/Scenes/Levels");
+
 		FileInfo[] fileInfoArray = levelDirectoryPath.GetFiles ("*.unity", SearchOption.AllDirectories);
 
 		if (fileInfoArray.Length > 0) {
@@ -69,7 +100,7 @@ public class LevelSelectionMenu : MonoBehaviour, IInputListener
 			MenuLevelItem menuItemScript = menuItemObj.GetComponent<MenuLevelItem> ();
 			menuItemScript.Text.text = Path.GetFileNameWithoutExtension (fileInfo.Name);
 			_menuLevelItemList.Add (menuItemScript);
-		}
+		}*/
 
 		SelectListItem (0);
 	}

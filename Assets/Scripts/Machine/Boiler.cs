@@ -71,7 +71,7 @@ public class Boiler : IMachine
 
 		// pressure <= 50% AND first player interacting
 		if (_pressure <= _halfBasePressure && _isFirstPlayerInteracting) {
-			Debug.Log ("Boiler:Update:pressure < 50% AND firstPlayerInteracting");
+			//Debug.Log ("Boiler:Update:pressure < 50% AND firstPlayerInteracting");
 			float newPressure = _pressure - (_interactionMultiplier * _pressionGainPerSecond * Time.deltaTime);
 			_pressure = Mathf.Clamp (newPressure, 0f, _basePressure);
 			_firstPlayerTimer += Time.deltaTime;
@@ -85,7 +85,7 @@ public class Boiler : IMachine
 		}
 		// no player interacting
 		else {
-			Debug.Log ("Boiler:Update:no player interacting");
+			//Debug.Log ("Boiler:Update:no player interacting");
 			float newPressure = _pressure + (_interactionMultiplier * _pressionGainPerSecond * Time.deltaTime);
 			_pressure = Mathf.Clamp (newPressure, 0f, _basePressure);
 		}
