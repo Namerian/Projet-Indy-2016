@@ -43,6 +43,14 @@ public class InputHandler : MonoBehaviour
 	// Update is called once per frame
 	void Update ()
 	{
+		if (Input.GetKeyDown (KeyCode.Escape)) {
+			#if UNITY_EDITOR
+			UnityEditor.EditorApplication.isPlaying = false;
+			#else
+			Application.Quit ();
+			#endif
+		}
+
 		for (int _joystickIndex = 0; _joystickIndex < 4; _joystickIndex++) {
 			/*if (inputListeners [_joystickIndex].Count == 0) {
 				continue;
