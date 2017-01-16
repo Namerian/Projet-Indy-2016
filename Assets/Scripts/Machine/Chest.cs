@@ -7,55 +7,23 @@ public class Chest : IMachine
 	public Sprite _spriteOpen;
 	public Sprite _spriteClosed;
 	public bool _requiresKey = false;
-	public int _activationChance = 20;
-
-	[Header ("Drop Amounts")]
-	public int _canonball = 1;
-	public int _torch = 1;
-	public int _wheel = 1;
-	public int _hammer = 1;
-	public int _mop = 1;
-	public int _key = 1;
-	public int _parachute = 0;
+	public ItemType _droppedItem;
 
 	private SpriteRenderer _renderer;
 
 	private Dictionary<ItemType, int> _dropAmounts;
 
-	private bool _isActive = false;
+	private bool _isActive = true;
 	private ItemType _itemToSpawn = ItemType.none;
 
 	public override bool IsActive{ get { return _isActive; } }
 
-	void Awake ()
-	{
-		_renderer = this.GetComponent<SpriteRenderer> ();
-
-		_dropAmounts = new Dictionary<ItemType, int> ();
-		_dropAmounts.Add (ItemType.canonball, _canonball);
-		_dropAmounts.Add (ItemType.torch, _torch);
-		_dropAmounts.Add (ItemType.wheel, _wheel);
-		_dropAmounts.Add (ItemType.hammer, _hammer);
-		_dropAmounts.Add (ItemType.mop, _hammer);
-		_dropAmounts.Add (ItemType.key, _key);
-		_dropAmounts.Add (ItemType.parachute, _parachute);
-	}
-
 	// Use this for initialization
 	void Start ()
 	{
-		if (ChooseItemToSpawn ()) {
-			Activate ();
-		} else {
-			Invoke ("RandomActivation", UnityEngine.Random.Range (_activationIntervalMin, _activationIntervalMax));
-		}
+		_renderer = this.GetComponent<SpriteRenderer> ();
+		_renderer.sprite = _spriteClosed;
 	}
-	
-	// Update is called once per frame
-	/*void Update ()
-	{
-		
-	}*/
 
 	public override MachineInteractionState Interact (PlayerController player)
 	{
@@ -64,28 +32,14 @@ public class Chest : IMachine
 		}
 
 		if (_requiresKey && player.HasItem && player.CurrentItem._itemType == ItemType.key) {
-			if (SpawnItem ()) {
-				player.DestroyCurrentItem ();
-				Deactivate ();
-			}
+			SpawnItem ();
+			Deactivate ();
 		} else if (!_requiresKey) {
-			if (SpawnItem ()) {
-				Deactivate ();
-			}
+			SpawnItem ();
+			Deactivate ();
 		}
 
 		return new MachineInteractionState (player, false);
-	}
-
-	private void Activate ()
-	{
-		if (_isActive) {
-			return;
-		}
-
-		_isActive = true;
-
-		_renderer.sprite = _spriteClosed;
 	}
 
 	private void Deactivate ()
@@ -93,26 +47,9 @@ public class Chest : IMachine
 		_isActive = false;
 
 		_renderer.sprite = _spriteOpen;
-
-		Invoke ("RandomActivation", UnityEngine.Random.Range (_activationIntervalMin, _activationIntervalMax));
 	}
 
-	private void RandomActivation ()
-	{
-		if (_isActive || Global.GameController.IsPaused) {
-			return;
-		}
-
-		int diceRoll = UnityEngine.Random.Range (1, 100);
-
-		if (diceRoll <= _activationChance && ChooseItemToSpawn ()) {
-			Activate ();
-		} else {
-			Invoke ("RandomActivation", UnityEngine.Random.Range (_activationIntervalMin, _activationIntervalMax));
-		}
-	}
-
-	private bool SpawnItem ()
+	private void SpawnItem ()
 	{
 		switch (_itemToSpawn) {
 		case ItemType.canonball:
@@ -136,31 +73,6 @@ public class Chest : IMachine
 		case ItemType.wheel:
 			Instantiate (Resources.Load ("Prefabs/Items/Wheel"), this.transform.position, Quaternion.identity);
 			break;
-		default:
-			return false;
 		}
-
-		return true;
-	}
-
-	private bool ChooseItemToSpawn ()
-	{
-		List<ItemType> availableTypes = new List<ItemType> ();
-
-		foreach (KeyValuePair<ItemType, int> entry in _dropAmounts) {
-			if (Item.GetItemAmount (entry.Key) < entry.Value) {
-				availableTypes.Add (entry.Key);
-			}
-		}
-
-		if (availableTypes.Count == 0) {
-			_itemToSpawn = ItemType.none;
-			return false;
-		}
-
-		int diceRoll = UnityEngine.Random.Range (0, availableTypes.Count - 1);
-		_itemToSpawn = availableTypes [diceRoll];
-
-		return true;
 	}
 }
