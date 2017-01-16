@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -51,67 +52,80 @@ public class InputHandler : MonoBehaviour
 			#endif
 		}
 
-		for (int _joystickIndex = 0; _joystickIndex < 4; _joystickIndex++) {
+		for (int joystickIndex = 0; joystickIndex < 4; joystickIndex++) {
 			/*if (inputListeners [_joystickIndex].Count == 0) {
 				continue;
 			}*/
 
-			List<IInputListener> listenerList = new List<IInputListener> (inputListeners [_joystickIndex]);
+			List<IInputListener> listenerList = new List<IInputListener> (inputListeners [joystickIndex]);
 
 			//######################################################################
 			// left stick
 
-			float _xAxis = Input.GetAxis (JOYSTICK_NAMES [_joystickIndex] + "_X_Axis");
-			float _yAxis = Input.GetAxis (JOYSTICK_NAMES [_joystickIndex] + "_Y_Axis");
-			Vector2 _leftStickState = new Vector2 (_xAxis, _yAxis);
+			float xAxis = Input.GetAxis (JOYSTICK_NAMES [joystickIndex] + "_X_Axis");
+			float yAxis = Input.GetAxis (JOYSTICK_NAMES [joystickIndex] + "_Y_Axis");
+			Vector2 leftStickState = new Vector2 (xAxis, yAxis);
 
 			/*if (_xAxis != 0 || _yAxis != 0) {
 				Debug.Log ("InputHandler: Update: Joystick " + _joystickIndex + ": leftStick=" + _leftStickState.ToString ());
 			}*/
 
 			foreach (IInputListener listener in listenerList) {
-				listener.OnHandleLeftStick (_joystickIndex, _leftStickState);
+				listener.OnHandleLeftStick (joystickIndex, leftStickState);
+			}
+
+			//######################################################################
+			// a button
+
+			float aButton = Input.GetAxis (JOYSTICK_NAMES [joystickIndex] + "_A_Button");
+			bool aPressed = false;
+
+			if (aButton > 0) {
+				aPressed = true;
+			}
+
+			foreach (IInputListener listener in listenerList) {
+				listener.OnHandleAButton (joystickIndex, aPressed);
+			}
+
+			//######################################################################
+			// b button
+
+			float bButton = Input.GetAxis (JOYSTICK_NAMES [joystickIndex] + "_B_Button");
+			bool bPressed = false;
+
+			if (bButton > 0) {
+				bPressed = true;
+			}
+
+			foreach (IInputListener listener in listenerList) {
+				listener.OnHandleBButton (joystickIndex, bPressed);
 			}
 
 			//######################################################################
 			// x button
 
-			bool _xPressed = Input.GetButton (JOYSTICK_NAMES [_joystickIndex] + "_X_Button");
+			bool xPressed = Input.GetButton (JOYSTICK_NAMES [joystickIndex] + "_X_Button");
 
 			/*if (_xPressed) {
 				Debug.Log ("InputHandler: Update: Joystick " + _joystickIndex + ": X Button pressed (" + _xPressed + ")");
 			}*/
 
 			foreach (IInputListener listener in listenerList) {
-				listener.OnHandleXButton (_joystickIndex, _xPressed);
+				listener.OnHandleXButton (joystickIndex, xPressed);
 			}
 
 			//######################################################################
-			// a button
+			// y button
 
-			float _aButton = Input.GetAxis (JOYSTICK_NAMES [_joystickIndex] + "_A_Button");
-			bool _aPressed = false;
+			bool yPressed = Input.GetButton (JOYSTICK_NAMES [joystickIndex] + "_Y_Button");
 
-			if (_aButton > 0) {
-				_aPressed = true;
-			}
-
-			foreach (IInputListener listener in listenerList) {
-				listener.OnHandleAButton (_joystickIndex, _aPressed);
-			}
-
-			//######################################################################
-			// b button
-
-			float _bButton = Input.GetAxis (JOYSTICK_NAMES [_joystickIndex] + "_B_Button");
-			bool _bPressed = false;
-
-			if (_bButton > 0) {
-				_bPressed = true;
-			}
+			/*if (_xPressed) {
+				Debug.Log ("InputHandler: Update: Joystick " + _joystickIndex + ": X Button pressed (" + _xPressed + ")");
+			}*/
 
 			foreach (IInputListener listener in listenerList) {
-				listener.OnHandleBButton (_joystickIndex, _bPressed);
+				listener.OnHandleYButton (joystickIndex, yPressed);
 			}
 		}
 	}
@@ -133,10 +147,10 @@ public class InputHandler : MonoBehaviour
 	/// <summary>
 	/// Registers an InputListener that listens to all Joysticks.
 	/// </summary>
-	public void AddInputListener (IInputListener listener)
+	/*public void AddInputListener (IInputListener listener)
 	{
 		
-	}
+	}*/
 
 	/// <summary>
 	/// Deregisters an InputListener.

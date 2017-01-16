@@ -160,4 +160,8 @@ public class LevelSelectionMenu : MonoBehaviour, IInputListener
 	void IInputListener.OnHandleBButton (int joystickIndex, bool pressed)
 	{
 	}
+
+	void IInputListener.OnHandleYButton (int joystickIndex, bool pressed)
+	{
+	}
 }
