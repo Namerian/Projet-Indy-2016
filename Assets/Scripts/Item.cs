@@ -11,7 +11,8 @@ public enum ItemType
 	hammer,
 	mop,
 	key,
-	parachute
+	parachute,
+	none
 }
 
 public class Item : MonoBehaviour, ILightEmitter

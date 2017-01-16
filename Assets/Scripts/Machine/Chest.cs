@@ -23,7 +23,7 @@ public class Chest : IMachine
 	private Dictionary<ItemType, int> _dropAmounts;
 
 	private bool _isActive = false;
-	private ItemType _itemToSpawn;
+	private ItemType _itemToSpawn = ItemType.none;
 
 	public override bool IsActive{ get { return _isActive; } }
 
@@ -44,7 +44,11 @@ public class Chest : IMachine
 	// Use this for initialization
 	void Start ()
 	{
-		Activate ();
+		if (ChooseItemToSpawn ()) {
+			Activate ();
+		} else {
+			Invoke ("RandomActivation", UnityEngine.Random.Range (_activationIntervalMin, _activationIntervalMax));
+		}
 	}
 	
 	// Update is called once per frame
@@ -90,7 +94,7 @@ public class Chest : IMachine
 
 		_renderer.sprite = _spriteOpen;
 
-		Invoke ("RandomActivation", UnityEngine.Random.Range (1f, 2f));
+		Invoke ("RandomActivation", UnityEngine.Random.Range (_activationIntervalMin, _activationIntervalMax));
 	}
 
 	private void RandomActivation ()
@@ -104,7 +108,7 @@ public class Chest : IMachine
 		if (diceRoll <= _activationChance && ChooseItemToSpawn ()) {
 			Activate ();
 		} else {
-			Invoke ("RandomActivation", UnityEngine.Random.Range (1f, 2f));
+			Invoke ("RandomActivation", UnityEngine.Random.Range (_activationIntervalMin, _activationIntervalMax));
 		}
 	}
 
@@ -150,6 +154,7 @@ public class Chest : IMachine
 		}
 
 		if (availableTypes.Count == 0) {
+			_itemToSpawn = ItemType.none;
 			return false;
 		}
 
