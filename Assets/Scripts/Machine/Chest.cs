@@ -14,7 +14,6 @@ public class Chest : IMachine
 	private Dictionary<ItemType, int> _dropAmounts;
 
 	private bool _isActive = true;
-	private ItemType _itemToSpawn = ItemType.none;
 
 	public override bool IsActive{ get { return _isActive; } }
 
@@ -51,7 +50,9 @@ public class Chest : IMachine
 
 	private void SpawnItem ()
 	{
-		switch (_itemToSpawn) {
+		Debug.Log ("Chest:SpawnItem:called! item =" + _droppedItem);
+
+		switch (_droppedItem) {
 		case ItemType.canonball:
 			Instantiate (Resources.Load ("Prefabs/Items/Canonball"), this.transform.position, Quaternion.identity);
 			break;
