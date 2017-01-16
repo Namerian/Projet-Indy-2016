@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Lamp : IMachine, ILightEmitter
+public class Lamp : IMachine, ILightEmitter, IActivableMachine
 {
 	public float _repairTime = 1f;
 	public int _repairScore = 15;
@@ -25,7 +25,7 @@ public class Lamp : IMachine, ILightEmitter
 		_dangerIconCanvasGroup = dangerIcon.GetComponent<CanvasGroup> ();
 		_dangerIconCanvasGroup.alpha = 0;
 
-		Invoke ("RandomActivation", UnityEngine.Random.Range (_activationIntervalMin, _activationIntervalMax));
+		Global.GameController.RegisterActivableMachine (this);
 	}
 	
 	// Update is called once per frame
@@ -33,13 +33,11 @@ public class Lamp : IMachine, ILightEmitter
 	{
 		if (!_isActive) {
 			return;
+		} else if (Global.GameController.IsGameInEndPhase) {
+			Deactivate ();
 		}
-        else if (Global.GameController.IsGameInEndPhase)
-        {
-            Deactivate();
-        }
 
-        if (_isRepairing) {
+		if (_isRepairing) {
 			if (!_repairInteraction.interactionUpdated) {
 				_isRepairing = false;
 			}
@@ -61,6 +59,10 @@ public class Lamp : IMachine, ILightEmitter
 			}
 		}
 	}
+
+	//==========================================================================================================
+	//
+	//==========================================================================================================
 
 	public override MachineInteractionState Interact (PlayerController player)
 	{
@@ -85,16 +87,7 @@ public class Lamp : IMachine, ILightEmitter
 		}
 	}
 
-	public bool IsEmittingLight ()
-	{
-		if (_isActive) {
-			return false;
-		}
-
-		return true;
-	}
-
-	private void Activate ()
+	public void Activate ()
 	{
 		if (_isActive) {
 			return;
@@ -104,6 +97,19 @@ public class Lamp : IMachine, ILightEmitter
 
 		_dangerIconCanvasGroup.alpha = 1;
 	}
+
+	public bool IsEmittingLight ()
+	{
+		if (_isActive) {
+			return false;
+		}
+
+		return true;
+	}
+
+	//==========================================================================================================
+	//
+	//==========================================================================================================
 
 	private void Deactivate ()
 	{
@@ -115,7 +121,7 @@ public class Lamp : IMachine, ILightEmitter
 		Invoke ("RandomActivation", UnityEngine.Random.Range (_activationIntervalMin, _activationIntervalMax));
 	}
 
-	private void RandomActivation ()
+	/*private void RandomActivation ()
 	{
 		if (_isActive || Global.GameController.IsPaused) {
 			return;
@@ -128,5 +134,5 @@ public class Lamp : IMachine, ILightEmitter
 		} else {
 			Invoke ("RandomActivation", UnityEngine.Random.Range (_activationIntervalMin, _activationIntervalMax));
 		}
-	}
+	}*/
 }

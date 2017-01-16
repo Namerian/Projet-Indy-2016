@@ -50,7 +50,7 @@ public class Chest : IMachine
 
 	private void SpawnItem ()
 	{
-		Debug.Log ("Chest:SpawnItem:called! item =" + _droppedItem);
+		//Debug.Log ("Chest:SpawnItem:called! item =" + _droppedItem);
 
 		switch (_droppedItem) {
 		case ItemType.canonball:

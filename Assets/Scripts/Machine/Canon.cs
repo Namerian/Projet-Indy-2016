@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class Canon : IMachine
+public class Canon : IMachine, IActivableMachine
 {
 	public float _activeTime = 15f;
 	public float _loadingTime = 1f;
@@ -26,24 +26,19 @@ public class Canon : IMachine
 
 	public override bool IsActive { get { return _isActive; } }
 
-	void Awake ()
+	// Use this for initialization
+	void Start ()
 	{
 		GameObject dangerIcon = this.transform.Find ("Canvas/DangerIcon").gameObject;
 		_dangerIconCanvasGroup = dangerIcon.GetComponent<CanvasGroup> ();
-
 		_dangerIconCanvasGroup.alpha = 0;
 
 		GameObject timerCircle = this.transform.Find ("Canvas/TimerCircle").gameObject;
 		_timerCircleCanvasGroup = timerCircle.GetComponent<CanvasGroup> ();
 		_timerCircleImage = timerCircle.GetComponent<Image> ();
-
 		_timerCircleCanvasGroup.alpha = 0;
-	}
 
-	// Use this for initialization
-	void Start ()
-	{
-		Invoke ("RandomActivation", UnityEngine.Random.Range (1f, 2f));
+		Global.GameController.RegisterActivableMachine (this);
 	}
 
 	// Update is called once per frame
@@ -73,6 +68,10 @@ public class Canon : IMachine
 			_loadingInteraction.interactionUpdated = false;
 		}
 	}
+
+	//==========================================================================================================
+	//
+	//==========================================================================================================
 
 	public override MachineInteractionState Interact (PlayerController player)
 	{
@@ -119,7 +118,7 @@ public class Canon : IMachine
 		}
 	}
 
-	private void Activate ()
+	public void Activate ()
 	{
 		if (_isActive) {
 			return;
@@ -134,6 +133,10 @@ public class Canon : IMachine
 		_timerCircleImage.fillAmount = 0;
 	}
 
+	//==========================================================================================================
+	//
+	//==========================================================================================================
+
 	private void Deactivate ()
 	{
 		_isActive = false;
@@ -146,7 +149,7 @@ public class Canon : IMachine
 		Invoke ("RandomActivation", UnityEngine.Random.Range (1f, 2f));
 	}
 
-	private void RandomActivation ()
+	/*private void RandomActivation ()
 	{
 		if (_isActive || Global.GameController.IsPaused) {
 			return;
@@ -159,5 +162,5 @@ public class Canon : IMachine
 		} else {
 			Invoke ("RandomActivation", UnityEngine.Random.Range (1f, 2f));
 		}
-	}
+	}*/
 }

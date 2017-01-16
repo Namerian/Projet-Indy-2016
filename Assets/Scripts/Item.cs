@@ -22,6 +22,16 @@ public class Item : MonoBehaviour, ILightEmitter
 	private CircleCollider2D _itemCollider;
 	private SpriteRenderer _itemRenderer;
 
+	private SpriteRenderer ItemRenderer {
+		get {
+			if (_itemRenderer == null) {
+				_itemRenderer = GetComponent<SpriteRenderer> ();
+			}
+
+			return _itemRenderer;
+		}
+	}
+
 	// Use this for initialization
 	void Start ()
 	{
@@ -43,7 +53,7 @@ public class Item : MonoBehaviour, ILightEmitter
 
 	public bool IsEmittingLight ()
 	{
-		if (_itemRenderer.enabled && _itemType == ItemType.torch) {
+		if (ItemRenderer.enabled && _itemType == ItemType.torch) {
 			return true;
 		}
 

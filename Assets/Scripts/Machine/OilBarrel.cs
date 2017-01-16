@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class OilBarrel : IMachine
+public class OilBarrel : IMachine, IActivableMachine
 {
 	public float _maxExpansion = 7f;
 	public float _expansionRate = 0.5f;
@@ -30,7 +30,7 @@ public class OilBarrel : IMachine
 		_dangerIconCanvasGroup = this.transform.parent.Find ("Canvas/DangerIcon").GetComponent<CanvasGroup> ();
 		_dangerIconCanvasGroup.alpha = 0;
 
-		Invoke ("RandomActivation", UnityEngine.Random.Range (_activationIntervalMin, _activationIntervalMax));
+		Global.GameController.RegisterActivableMachine (this);
 	}
 	
 	// Update is called once per frame
@@ -38,13 +38,11 @@ public class OilBarrel : IMachine
 	{
 		if (!_isActive) {
 			return;
+		} else if (Global.GameController.IsGameInEndPhase) {
+			Deactivate ();
 		}
-        else if (Global.GameController.IsGameInEndPhase)
-        {
-            Deactivate();
-        }
 
-        if (_isCleaning) {
+		if (_isCleaning) {
 			if (!_cleaningInteraction.interactionUpdated) {
 				_isCleaning = false;
 			}
@@ -90,6 +88,10 @@ public class OilBarrel : IMachine
 		}
 	}
 
+	//==========================================================================================================
+	//
+	//==========================================================================================================
+
 	public override MachineInteractionState Interact (PlayerController player)
 	{
 		if (!_isActive) {
@@ -113,7 +115,7 @@ public class OilBarrel : IMachine
 		}
 	}
 
-	private void Activate ()
+	public void Activate ()
 	{
 		if (_isActive) {
 			return;
@@ -123,6 +125,10 @@ public class OilBarrel : IMachine
 
 		_dangerIconCanvasGroup.alpha = 1;
 	}
+
+	//==========================================================================================================
+	//
+	//==========================================================================================================
 
 	private void Deactivate ()
 	{
@@ -135,7 +141,7 @@ public class OilBarrel : IMachine
 		Invoke ("RandomActivation", UnityEngine.Random.Range (_activationIntervalMin, _activationIntervalMax));
 	}
 
-	private void RandomActivation ()
+	/*private void RandomActivation ()
 	{
 		if (_isActive || Global.GameController.IsPaused) {
 			return;
@@ -148,5 +154,5 @@ public class OilBarrel : IMachine
 		} else {
 			Invoke ("RandomActivation", UnityEngine.Random.Range (_activationIntervalMin, _activationIntervalMax));
 		}
-	}
+	}*/
 }

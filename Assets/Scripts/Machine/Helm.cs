@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Helm : IMachine
+public class Helm : IMachine, IActivableMachine
 {
 	public float _navigationTime = 2f;
 	public int _activationChance = 20;
@@ -22,18 +22,14 @@ public class Helm : IMachine
 
 	public override bool IsActive{ get { return _isActive; } }
 
-	void Awake ()
-	{
-		GameObject dangerIcon = this.transform.Find ("Canvas/DangerIcon").gameObject;
-		_dangerIconCanvasGroup = dangerIcon.GetComponent<CanvasGroup> ();
-
-		_dangerIconCanvasGroup.alpha = 0;
-	}
-
 	// Use this for initialization
 	void Start ()
 	{
-		Invoke ("RandomActivation", UnityEngine.Random.Range (1f, 2f));
+		GameObject dangerIcon = this.transform.Find ("Canvas/DangerIcon").gameObject;
+		_dangerIconCanvasGroup = dangerIcon.GetComponent<CanvasGroup> ();
+		_dangerIconCanvasGroup.alpha = 0;
+
+		Global.GameController.RegisterActivableMachine (this);
 	}
 	
 	// Update is called once per frame
@@ -41,13 +37,11 @@ public class Helm : IMachine
 	{
 		if (!_isActive) {
 			return;
+		} else if (Global.GameController.IsGameInEndPhase) {
+			Deactivate ();
 		}
-        else if (Global.GameController.IsGameInEndPhase)
-        {
-            Deactivate();
-        }
 
-        if (_isNavigatorPresent) {
+		if (_isNavigatorPresent) {
 			if (!_navigatorInteraction.interactionUpdated) {
 				_isNavigatorPresent = false;
 			}
@@ -79,6 +73,10 @@ public class Helm : IMachine
 		}
 	}
 
+	//==========================================================================================================
+	//
+	//==========================================================================================================
+
 	public override MachineInteractionState Interact (PlayerController player)
 	{
 		if (!_isActive) {
@@ -103,7 +101,7 @@ public class Helm : IMachine
 		return new MachineInteractionState (player, false);
 	}
 
-	private void Activate ()
+	public void Activate ()
 	{
 		if (_isActive) {
 			return;
@@ -120,6 +118,10 @@ public class Helm : IMachine
 		Global.GameController.WindForce = windForce.normalized;
 	}
 
+	//==========================================================================================================
+	//
+	//==========================================================================================================
+
 	private void Deactivate ()
 	{
 		_isActive = false;
@@ -133,7 +135,7 @@ public class Helm : IMachine
 		Invoke ("RandomActivation", UnityEngine.Random.Range (1f, 2f));
 	}
 
-	private void RandomActivation ()
+	/*private void RandomActivation ()
 	{
 		if (_isActive || Global.GameController.IsPaused) {
 			return;
@@ -146,5 +148,5 @@ public class Helm : IMachine
 		} else {
 			Invoke ("RandomActivation", UnityEngine.Random.Range (1f, 2f));
 		}
-	}
+	}*/
 }

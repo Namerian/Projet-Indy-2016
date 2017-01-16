@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Planks : IMachine
+public class Planks : IMachine, IActivableMachine
 {
 	public float _repairTime = 2;
 	public float _damagePerSecond = 2;
@@ -31,7 +31,7 @@ public class Planks : IMachine
 		_dangerIconCanvasGroup = dangerIcon.GetComponent<CanvasGroup> ();
 		_dangerIconCanvasGroup.alpha = 0;
 
-		Invoke ("RandomActivation", UnityEngine.Random.Range (_activationIntervalMin, _activationIntervalMax));
+		Global.GameController.RegisterActivableMachine (this);
 	}
 	
 	// Update is called once per frame
@@ -39,13 +39,11 @@ public class Planks : IMachine
 	{
 		if (!_isActive) {
 			return;
+		} else if (Global.GameController.IsGameInEndPhase) {
+			Deactivate ();
 		}
-        else if (Global.GameController.IsGameInEndPhase)
-        {
-            Deactivate();
-        }
 
-        if (_isRepairing) {
+		if (_isRepairing) {
 			if (!_repairInteraction.interactionUpdated) {
 				_isRepairing = false;
 			}
@@ -67,6 +65,10 @@ public class Planks : IMachine
 			}
 		}
 	}
+
+	//==========================================================================================================
+	//
+	//==========================================================================================================
 
 	public override MachineInteractionState Interact (PlayerController player)
 	{
@@ -91,7 +93,7 @@ public class Planks : IMachine
 		}
 	}
 
-	private void Activate ()
+	public void Activate ()
 	{
 		if (_isActive) {
 			return;
@@ -104,6 +106,10 @@ public class Planks : IMachine
 
 		Invoke ("DoDamage", 1f);
 	}
+
+	//==========================================================================================================
+	//
+	//==========================================================================================================
 
 	private void Deactivate ()
 	{
@@ -125,7 +131,7 @@ public class Planks : IMachine
 		}
 	}
 
-	private void RandomActivation ()
+	/*private void RandomActivation ()
 	{
 		if (_isActive || Global.GameController.IsPaused) {
 			return;
@@ -138,5 +144,5 @@ public class Planks : IMachine
 		} else {
 			Invoke ("RandomActivation", UnityEngine.Random.Range (_activationIntervalMin, _activationIntervalMax));
 		}
-	}
+	}*/
 }
