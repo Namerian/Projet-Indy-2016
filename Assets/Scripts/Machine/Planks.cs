@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Planks : IMachine, IActivableMachine
 {
-	public float _repairTime = 2;
+	public int _requiredButtonPresses = 20;
 	public float _damagePerSecond = 2;
 	public int _activationChance = 20;
 	public int _repairScore = 15;
@@ -16,7 +16,7 @@ public class Planks : IMachine, IActivableMachine
 	private bool _isActive = false;
 
 	private bool _isRepairing = false;
-	private float _repairTimer = 0;
+	private int _currentButtonPresses = 0;
 	private MachineInteractionState _repairInteraction;
 
 	public override bool IsActive{ get { return _isActive; } }
@@ -37,32 +37,8 @@ public class Planks : IMachine, IActivableMachine
 	// Update is called once per frame
 	void Update ()
 	{
-		if (!_isActive) {
-			return;
-		} else if (Global.GameController.IsGameInEndPhase) {
+		if (Global.GameController.IsGameInEndPhase) {
 			Deactivate ();
-		}
-
-		if (_isRepairing) {
-			if (!_repairInteraction.interactionUpdated) {
-				_isRepairing = false;
-			}
-
-			_repairInteraction.interactionUpdated = false;
-		}
-
-		if (_isRepairing) {
-			_repairTimer += Time.deltaTime;
-			_repairInteraction.progress = _repairTimer / _repairTime;
-
-			if (_repairInteraction.progress >= 1f) {
-				_repairInteraction.progress = 1f;
-				_repairInteraction.player.AddScore (_repairScore);
-
-				Deactivate ();
-
-				//Debug.Log ("Planks:Interaction:planks repaired!");
-			}
 		}
 	}
 
@@ -76,21 +52,29 @@ public class Planks : IMachine, IActivableMachine
 			return new MachineInteractionState (player, false);
 		}
 
-		if (_isRepairing && _repairInteraction.player == player) {
-			_repairInteraction.interactionUpdated = true;
+		if (player.HasItem && player.CurrentItem._itemType == ItemType.hammer) {
+			if (_isRepairing && _repairInteraction.player == player) {
+				_currentButtonPresses++;
+				_repairInteraction.progress = (float)_currentButtonPresses / (float)_requiredButtonPresses;
 
-			return _repairInteraction;
-		} else {
-			if (!player.HasItem || player.CurrentItem._itemType != ItemType.hammer || _isRepairing) {
-				return new MachineInteractionState (player, false);
+				Debug.Log ("Planks:Interact:current progress = " + _currentButtonPresses);
+
+				if (_currentButtonPresses == _requiredButtonPresses) {
+					_repairInteraction.player.AddScore (_repairScore);
+					Deactivate ();
+				}
+
+				return _repairInteraction;
+			} else {
+				_isRepairing = true;
+				_currentButtonPresses = 0;
+				_repairInteraction = new MachineInteractionState (player, true);
+
+				return _repairInteraction;
 			}
-
-			_isRepairing = true;
-			_repairTimer = 0f;
-			_repairInteraction = new MachineInteractionState (player, true);
-
-			return _repairInteraction;
 		}
+
+		return new MachineInteractionState (player, false);
 	}
 
 	public void Activate ()
@@ -100,8 +84,8 @@ public class Planks : IMachine, IActivableMachine
 		}
 
 		_isActive = true;
-		_renderer.enabled = true;
 
+		_renderer.enabled = true;
 		_dangerIconCanvasGroup.alpha = 1;
 
 		Invoke ("DoDamage", 1f);
@@ -115,11 +99,10 @@ public class Planks : IMachine, IActivableMachine
 	{
 		_isActive = false;
 		_isRepairing = false;
+		_currentButtonPresses = 0;
 
 		_renderer.enabled = false;
 		_dangerIconCanvasGroup.alpha = 0;
-
-		Invoke ("RandomActivation", UnityEngine.Random.Range (_activationIntervalMin, _activationIntervalMax));
 	}
 
 	private void DoDamage ()

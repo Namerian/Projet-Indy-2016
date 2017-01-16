@@ -93,7 +93,8 @@ public class PlayerController : MonoBehaviour, IInputListener, ILightEmitter
 		GameObject interactionCircle = this.transform.Find ("Canvas/InteractionCircle").gameObject;
 		_interactionCircleCanvasGroup = interactionCircle.GetComponent<CanvasGroup> ();
 		_interactionCircleImage = interactionCircle.GetComponent<Image> ();
-		_interactionCircleCanvasGroup.alpha = 0;
+		_interactionCircleCanvasGroup.alpha = 1;
+		_interactionCircleImage.fillAmount = 0f;
 
 		//
 		_spawnPosition = transform.position;
@@ -134,11 +135,6 @@ public class PlayerController : MonoBehaviour, IInputListener, ILightEmitter
 	// Update is called once per frame
 	void Update ()
 	{
-		//
-		if (_interactionCircleImage.fillAmount == 1f) {
-			_interactionCircleImage.fillAmount = 0f;
-		}
-
 		//####################################################################################
 		//death
 		if (!_isDead && !_isDashing) {
@@ -238,11 +234,12 @@ public class PlayerController : MonoBehaviour, IInputListener, ILightEmitter
 				MachineInteractionState state = nearestMachine.Interact (this);
 
 				if (state.isLegal && state.progress > 0f) {
-					if (_interactionCircleCanvasGroup.alpha == 0f) {
-						_interactionCircleCanvasGroup.alpha = 1f;
-					}
 
-					_interactionCircleImage.fillAmount = state.progress;
+					if (state.progress == 1f) {
+						_interactionCircleImage.fillAmount = 0f;
+					} else {
+						_interactionCircleImage.fillAmount = state.progress;
+					}
 				}
 			}
 		}

@@ -227,7 +227,7 @@ public class GameController : MonoBehaviour
 		bool machineActivated = false;
 
 		while (!machineActivated) {
-			int index = UnityEngine.Random.Range (0, _activableMachines.Count);
+			int index = UnityEngine.Random.Range (0, _activableMachines.Count - 1);
 			IActivableMachine machine = _activableMachines [index];
 
 			if (!machine.IsActive) {
