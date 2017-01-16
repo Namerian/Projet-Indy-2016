@@ -643,7 +643,7 @@ public class PlayerController : MonoBehaviour, IInputListener, ILightEmitter
 		DropCurrentItem ();
 	}
 
-	/*public void DestroyCurrentItem ()
+	public void DestroyCurrentItem ()
 	{
 		if (CurrentItem == null) {
 			return;
@@ -654,7 +654,7 @@ public class PlayerController : MonoBehaviour, IInputListener, ILightEmitter
 		_uiItemCanvasGroup.alpha = 1;
 		CurrentItem = null;
 		_currentItemGO = null;
-	}*/
+	}
 
 	public bool HasItem {
 		get {

@@ -14,6 +14,7 @@ public class Chest : IMachine
 	private Dictionary<ItemType, int> _dropAmounts;
 
 	private bool _isActive = true;
+	private GameObject _spawnedItem;
 
 	public override bool IsActive{ get { return _isActive; } }
 
@@ -22,6 +23,14 @@ public class Chest : IMachine
 	{
 		_renderer = this.GetComponent<SpriteRenderer> ();
 		_renderer.sprite = _spriteClosed;
+	}
+
+	void Update ()
+	{
+		if (!_isActive && _spawnedItem == null) {
+			_isActive = true;
+			_renderer.sprite = _spriteClosed;
+		}
 	}
 
 	public override MachineInteractionState Interact (PlayerController player)
@@ -54,25 +63,25 @@ public class Chest : IMachine
 
 		switch (_droppedItem) {
 		case ItemType.canonball:
-			Instantiate (Resources.Load ("Prefabs/Items/Canonball"), this.transform.position, Quaternion.identity);
+			_spawnedItem = (GameObject)Instantiate (Resources.Load ("Prefabs/Items/Canonball"), this.transform.position, Quaternion.identity);
 			break;
 		case ItemType.hammer:
-			Instantiate (Resources.Load ("Prefabs/Items/Hammer"), this.transform.position, Quaternion.identity);
+			_spawnedItem = (GameObject)Instantiate (Resources.Load ("Prefabs/Items/Hammer"), this.transform.position, Quaternion.identity);
 			break;
 		case ItemType.key:
-			Instantiate (Resources.Load ("Prefabs/Items/Key"), this.transform.position, Quaternion.identity);
+			_spawnedItem = (GameObject)Instantiate (Resources.Load ("Prefabs/Items/Key"), this.transform.position, Quaternion.identity);
 			break;
 		case ItemType.mop:
-			Instantiate (Resources.Load ("Prefabs/Items/Mop"), this.transform.position, Quaternion.identity);
+			_spawnedItem = (GameObject)Instantiate (Resources.Load ("Prefabs/Items/Mop"), this.transform.position, Quaternion.identity);
 			break;
 		case ItemType.parachute:
-			Instantiate (Resources.Load ("Prefabs/Items/Parachute"), this.transform.position, Quaternion.identity);
+			_spawnedItem = (GameObject)Instantiate (Resources.Load ("Prefabs/Items/Parachute"), this.transform.position, Quaternion.identity);
 			break;
 		case ItemType.torch:
-			Instantiate (Resources.Load ("Prefabs/Items/Torch"), this.transform.position, Quaternion.identity);
+			_spawnedItem = (GameObject)Instantiate (Resources.Load ("Prefabs/Items/Torch"), this.transform.position, Quaternion.identity);
 			break;
 		case ItemType.wheel:
-			Instantiate (Resources.Load ("Prefabs/Items/Wheel"), this.transform.position, Quaternion.identity);
+			_spawnedItem = (GameObject)Instantiate (Resources.Load ("Prefabs/Items/Wheel"), this.transform.position, Quaternion.identity);
 			break;
 		}
 	}

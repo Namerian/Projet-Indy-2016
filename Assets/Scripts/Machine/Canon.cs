@@ -101,6 +101,7 @@ public class Canon : IMachine, IActivableMachine
 				_loadingInteraction.progress = 1;
 				_ballLoaded = true;
 				player.AddScore (_loadingScore);
+				player.DestroyCurrentItem ();
 				Debug.Log ("Canon:Interact:ball loaded");
 			}
 
