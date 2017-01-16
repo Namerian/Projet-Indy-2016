@@ -14,6 +14,7 @@ public class Boiler : IMachine
 	private Slider _pressureSlider;
 	private CanvasGroup _dangerIconCanvasGroup;
 
+    private bool _isActive = true;
 	private float _pressure = 0;
 	private float _halfBasePressure;
 
@@ -48,8 +49,19 @@ public class Boiler : IMachine
 	
 	// Update is called once per frame
 	void Update ()
-	{
-		if (_isFirstPlayerInteracting) {
+    {
+        if (!_isActive)
+        {
+            return;
+        }
+        else if (Global.GameController.IsGameInEndPhase)
+        {
+            _isActive = false;
+            _isFirstPlayerInteracting = false;
+            _isSecondPlayerInteracting = false;
+        }
+
+        if (_isFirstPlayerInteracting) {
 			if (!_firstPlayerInteraction.interactionUpdated) {
 				_isFirstPlayerInteracting = false;
 			}
@@ -129,7 +141,12 @@ public class Boiler : IMachine
 
 	public override MachineInteractionState Interact (PlayerController player)
 	{
-		if (_isFirstPlayerInteracting && _firstPlayerInteraction.player == player) {
+        if (!_isActive)
+        {
+            return new MachineInteractionState(player, false);
+        }
+
+        if (_isFirstPlayerInteracting && _firstPlayerInteraction.player == player) {
 			_firstPlayerInteraction.interactionUpdated = true;
 			return _firstPlayerInteraction;
 		} else if (_isSecondPlayerInteracting && _secondPlayerInteraction.player == player) {

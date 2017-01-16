@@ -5,158 +5,182 @@ using UnityEngine.UI;
 
 public class Canon : IMachine
 {
-	public float _activeTime = 15f;
-	public float _loadingTime = 1f;
-	public float _damage = 15f;
-	public int _activationChance = 20;
-	public int _loadingScore = 15;
-	public int _firingScore = 5;
+    public float _activeTime = 15f;
+    public float _loadingTime = 1f;
+    public float _damage = 15f;
+    public int _activationChance = 20;
+    public int _loadingScore = 15;
+    public int _firingScore = 5;
 
-	private CanvasGroup _dangerIconCanvasGroup;
-	private CanvasGroup _timerCircleCanvasGroup;
-	private Image _timerCircleImage;
+    private CanvasGroup _dangerIconCanvasGroup;
+    private CanvasGroup _timerCircleCanvasGroup;
+    private Image _timerCircleImage;
 
-	private bool _isActive = false;
-	private float _activeTimer = 0f;
+    private bool _isActive = false;
+    private float _activeTimer = 0f;
 
-	private bool _ballLoaded = false;
-	private bool _isLoading = false;
-	private float _loadingTimer = 0;
-	private MachineInteractionState _loadingInteraction;
+    private bool _ballLoaded = false;
+    private bool _isLoading = false;
+    private float _loadingTimer = 0;
+    private MachineInteractionState _loadingInteraction;
 
-	public override bool IsActive{ get { return _isActive; } }
+    public override bool IsActive { get { return _isActive; } }
 
-	void Awake ()
-	{
-		GameObject dangerIcon = this.transform.Find ("Canvas/DangerIcon").gameObject;
-		_dangerIconCanvasGroup = dangerIcon.GetComponent<CanvasGroup> ();
+    void Awake()
+    {
+        GameObject dangerIcon = this.transform.Find("Canvas/DangerIcon").gameObject;
+        _dangerIconCanvasGroup = dangerIcon.GetComponent<CanvasGroup>();
 
-		_dangerIconCanvasGroup.alpha = 0;
+        _dangerIconCanvasGroup.alpha = 0;
 
-		GameObject timerCircle = this.transform.Find ("Canvas/TimerCircle").gameObject;
-		_timerCircleCanvasGroup = timerCircle.GetComponent<CanvasGroup> ();
-		_timerCircleImage = timerCircle.GetComponent<Image> ();
+        GameObject timerCircle = this.transform.Find("Canvas/TimerCircle").gameObject;
+        _timerCircleCanvasGroup = timerCircle.GetComponent<CanvasGroup>();
+        _timerCircleImage = timerCircle.GetComponent<Image>();
 
-		_timerCircleCanvasGroup.alpha = 0;
-	}
+        _timerCircleCanvasGroup.alpha = 0;
+    }
 
-	// Use this for initialization
-	void Start ()
-	{
-		Invoke ("RandomActivation", UnityEngine.Random.Range (1f, 2f));
-	}
-	
-	// Update is called once per frame
-	void Update ()
-	{
-		if (!_isActive) {
-			return;
-		}
+    // Use this for initialization
+    void Start()
+    {
+        Invoke("RandomActivation", UnityEngine.Random.Range(1f, 2f));
+    }
 
-		if (_activeTimer >= _activeTime) {
-			Global.GameController.ApplyDamageToShip (_damage);
+    // Update is called once per frame
+    void Update()
+    {
+        if (!_isActive)
+        {
+            return;
+        }
+        else if (Global.GameController.IsGameInEndPhase)
+        {
+            Deactivate();
+        }
 
-			Deactivate ();
-		} else {
-			_activeTimer += Time.deltaTime;
+        if (_activeTimer >= _activeTime)
+        {
+            Global.GameController.ApplyDamageToShip(_damage);
 
-			_timerCircleImage.fillAmount = _activeTimer / _activeTime;
-		}
+            Deactivate();
+        }
+        else
+        {
+            _activeTimer += Time.deltaTime;
 
-		if (_isLoading) {
-			if (!_loadingInteraction.interactionUpdated) {
-				_isLoading = false;
-			}
+            _timerCircleImage.fillAmount = _activeTimer / _activeTime;
+        }
 
-			_loadingInteraction.interactionUpdated = false;
-		}
-	}
+        if (_isLoading)
+        {
+            if (!_loadingInteraction.interactionUpdated)
+            {
+                _isLoading = false;
+            }
 
-	public override MachineInteractionState Interact (PlayerController player)
-	{
-		if (!_isActive) {
-			return new MachineInteractionState (player, false);
-		}
+            _loadingInteraction.interactionUpdated = false;
+        }
+    }
 
-		if (_ballLoaded) {
-			if (!player.HasItem || player.CurrentItem._itemType != ItemType.torch) {
-				return new MachineInteractionState (player, false);
-			}
+    public override MachineInteractionState Interact(PlayerController player)
+    {
+        if (!_isActive)
+        {
+            return new MachineInteractionState(player, false);
+        }
 
-			Debug.Log ("Canon:Interact:canon fired");
+        if (_ballLoaded)
+        {
+            if (!player.HasItem || player.CurrentItem._itemType != ItemType.torch)
+            {
+                return new MachineInteractionState(player, false);
+            }
 
-			Deactivate ();
+            Debug.Log("Canon:Interact:canon fired");
 
-			player.AddScore (_firingScore);
-			MachineInteractionState result = new MachineInteractionState (player, true);
-			result.progress = 1;
-			return result;
-		} else if (_isLoading && _loadingInteraction.player == player) {
-			_loadingTimer += Time.deltaTime;
-			_loadingInteraction.progress = _loadingTimer / _loadingTime;
-			_loadingInteraction.interactionUpdated = true;
+            Deactivate();
 
-			if (_loadingInteraction.progress >= 1) {
-				_loadingInteraction.progress = 1;
-				_ballLoaded = true;
-				player.AddScore (_loadingScore);
-				player.DestroyCurrentItem ();
-				Debug.Log ("Canon:Interact:ball loaded");
-			}
+            player.AddScore(_firingScore);
+            MachineInteractionState result = new MachineInteractionState(player, true);
+            result.progress = 1;
+            return result;
+        }
+        else if (_isLoading && _loadingInteraction.player == player)
+        {
+            _loadingTimer += Time.deltaTime;
+            _loadingInteraction.progress = _loadingTimer / _loadingTime;
+            _loadingInteraction.interactionUpdated = true;
 
-			return _loadingInteraction;
-		} else {
-			if (!player.HasItem || player.CurrentItem._itemType != ItemType.canonball || _isLoading) {
-				return new MachineInteractionState (player, false);
-			}
+            if (_loadingInteraction.progress >= 1)
+            {
+                _loadingInteraction.progress = 1;
+                _ballLoaded = true;
+                player.AddScore(_loadingScore);
+                player.DestroyCurrentItem();
+                Debug.Log("Canon:Interact:ball loaded");
+            }
 
-			_isLoading = true;
-			_loadingTimer = 0;
-			_loadingInteraction = new MachineInteractionState (player, true);
+            return _loadingInteraction;
+        }
+        else
+        {
+            if (!player.HasItem || player.CurrentItem._itemType != ItemType.canonball || _isLoading)
+            {
+                return new MachineInteractionState(player, false);
+            }
 
-			return _loadingInteraction;
-		}
-	}
+            _isLoading = true;
+            _loadingTimer = 0;
+            _loadingInteraction = new MachineInteractionState(player, true);
 
-	private void Activate ()
-	{
-		if (_isActive) {
-			return;
-		}
+            return _loadingInteraction;
+        }
+    }
 
-		_isActive = true;
-		_activeTimer = 0f;
+    private void Activate()
+    {
+        if (_isActive)
+        {
+            return;
+        }
 
-		_dangerIconCanvasGroup.alpha = 1;
+        _isActive = true;
+        _activeTimer = 0f;
 
-		_timerCircleCanvasGroup.alpha = 1;
-		_timerCircleImage.fillAmount = 0;
-	}
+        _dangerIconCanvasGroup.alpha = 1;
 
-	private void Deactivate ()
-	{
-		_isActive = false;
-		_ballLoaded = false;
-		_isLoading = false;
+        _timerCircleCanvasGroup.alpha = 1;
+        _timerCircleImage.fillAmount = 0;
+    }
 
-		_dangerIconCanvasGroup.alpha = 0;
-		_timerCircleCanvasGroup.alpha = 0;
+    private void Deactivate()
+    {
+        _isActive = false;
+        _ballLoaded = false;
+        _isLoading = false;
 
-		Invoke ("RandomActivation", UnityEngine.Random.Range (1f, 2f));
-	}
+        _dangerIconCanvasGroup.alpha = 0;
+        _timerCircleCanvasGroup.alpha = 0;
 
-	private void RandomActivation ()
-	{
-		if (_isActive || Global.GameController.IsPaused) {
-			return;
-		}
+        Invoke("RandomActivation", UnityEngine.Random.Range(1f, 2f));
+    }
 
-		int diceRoll = UnityEngine.Random.Range (1, 100);
+    private void RandomActivation()
+    {
+        if (_isActive || Global.GameController.IsPaused)
+        {
+            return;
+        }
 
-		if (diceRoll <= _activationChance) {
-			Activate ();
-		} else {
-			Invoke ("RandomActivation", UnityEngine.Random.Range (1f, 2f));
-		}
-	}
+        int diceRoll = UnityEngine.Random.Range(1, 100);
+
+        if (diceRoll <= _activationChance)
+        {
+            Activate();
+        }
+        else
+        {
+            Invoke("RandomActivation", UnityEngine.Random.Range(1f, 2f));
+        }
+    }
 }

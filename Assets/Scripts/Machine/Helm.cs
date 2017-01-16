@@ -42,8 +42,12 @@ public class Helm : IMachine
 		if (!_isActive) {
 			return;
 		}
+        else if (Global.GameController.IsGameInEndPhase)
+        {
+            Deactivate();
+        }
 
-		if (_isNavigatorPresent) {
+        if (_isNavigatorPresent) {
 			if (!_navigatorInteraction.interactionUpdated) {
 				_isNavigatorPresent = false;
 			}

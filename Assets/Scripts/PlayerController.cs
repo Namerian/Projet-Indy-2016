@@ -5,310 +5,355 @@ using System.Collections.Generic;
 
 public enum PlayerName
 {
-	BluePlayer,
-	RedPlayer,
-	GreenPlayer,
-	PurplePlayer,
-	None
+    BluePlayer,
+    RedPlayer,
+    GreenPlayer,
+    PurplePlayer,
+    None
 }
 
 public class PlayerController : MonoBehaviour, IInputListener, ILightEmitter
 {
-	public PlayerName _playerName;
-	public int _controllerIndex = 0;
+    public PlayerName _playerName;
+    public int _controllerIndex = 0;
 
-	//
-	private GameController _gameController;
+    //
+    private GameController _gameController;
 
-	//
-	private CircleCollider2D _collider;
-	private Rigidbody2D _rigidbody;
+    //
+    private CircleCollider2D _collider;
+    private Rigidbody2D _rigidbody;
 
-	private CanvasGroup _interactionCircleCanvasGroup;
-	private Image _interactionCircleImage;
+    private CanvasGroup _interactionCircleCanvasGroup;
+    private Image _interactionCircleImage;
 
-	// UI
-	private Text _uiScoreText;
-	private CanvasGroup _uiItemCanvasGroup;
+    // UI
+    private Text _uiScoreText;
+    private CanvasGroup _uiItemCanvasGroup;
 
-	// Input
-	private bool _xButtonCurrentlyPressed;
-	private bool _xButtonPreviouslyPressed;
-	private bool _aButtonCurrentlyPressed;
-	private bool _aButtonPreviouslyPressed;
-	private bool _bButtonCurrentlyPressed;
-	private bool _bButtonPreviouslyPressed;
+    // Input
+    private bool _xButtonCurrentlyPressed;
+    private bool _xButtonPreviouslyPressed;
+    private bool _aButtonCurrentlyPressed;
+    private bool _aButtonPreviouslyPressed;
+    private bool _bButtonCurrentlyPressed;
+    private bool _bButtonPreviouslyPressed;
 
-	//
-	private bool _isDashing;
-	private float _dashTimer;
-	private float _dashCooldown;
+    //
+    private bool _isDashing;
+    private float _dashTimer;
+    private float _dashCooldown;
 
-	//
-	private bool _isBumped;
-	private float _bumpTimer;
-	private PlayerName _bumpingPlayer = PlayerName.None;
+    //
+    private bool _isBumped;
+    private float _bumpTimer;
+    private PlayerName _bumpingPlayer = PlayerName.None;
 
-	//
-	private Vector3 _movementAcceleration = new Vector3 ();
-	private Vector3 _dashAcceleration = new Vector3 ();
-	private Vector3 _bumpAcceleration = new Vector3 ();
+    //
+    private Vector3 _movementAcceleration = new Vector3();
+    private Vector3 _dashAcceleration = new Vector3();
+    private Vector3 _bumpAcceleration = new Vector3();
 
-	private Vector3 _velocity = new Vector3 ();
+    private Vector3 _velocity = new Vector3();
 
-	// Items
-	public Item CurrentItem{ get; private set; }
+    // Items
+    public Item CurrentItem { get; private set; }
 
-	private GameObject _currentItemGO;
-	private List<Item> _overlappingItems = new List<Item> ();
+    private GameObject _currentItemGO;
+    private List<Item> _overlappingItems = new List<Item>();
 
-	//Death
-	private Vector3 _spawnPosition;
-	private bool _isDead;
-	private float _respawnTimer;
+    //Death
+    private Vector3 _spawnPosition;
+    private bool _isDead;
+    private float _respawnTimer;
 
-	private List<GameObject> _floorColliders = new List<GameObject> ();
+    private List<GameObject> _floorColliders = new List<GameObject>();
 
-	//Machines
-	private List<IMachine> _overlappingMachines = new List<IMachine> ();
-	private IMachine _currentMachine;
-	private bool _isInteracting = false;
+    //Machines
+    private List<IMachine> _overlappingMachines = new List<IMachine>();
+    private IMachine _currentMachine;
+    private bool _isInteracting = false;
 
-	//
-	public int Score { get; private set; }
+    //
+    public int Score { get; private set; }
+    public bool IsDead { get { return _isDead; } }
 
-	//
-	private Quaternion _quaternionUp;
+    //
+    private Quaternion _quaternionUp;
 
-	//#############################################################################
+    //#############################################################################
 
-	void Awake ()
-	{
-		_gameController = GameObject.FindGameObjectWithTag ("GameController").GetComponent<GameController> ();
+    void Awake()
+    {
+        _gameController = GameObject.FindGameObjectWithTag("GameController").GetComponent<GameController>();
 
-		_collider = this.GetComponent<CircleCollider2D> ();
-		_rigidbody = this.GetComponent<Rigidbody2D> ();
+        _collider = this.GetComponent<CircleCollider2D>();
+        _rigidbody = this.GetComponent<Rigidbody2D>();
 
-		GameObject interactionCircle = this.transform.Find ("Canvas/InteractionCircle").gameObject;
-		_interactionCircleCanvasGroup = interactionCircle.GetComponent<CanvasGroup> ();
-		_interactionCircleImage = interactionCircle.GetComponent<Image> ();
-		_interactionCircleCanvasGroup.alpha = 0;
-	}
+        GameObject interactionCircle = this.transform.Find("Canvas/InteractionCircle").gameObject;
+        _interactionCircleCanvasGroup = interactionCircle.GetComponent<CanvasGroup>();
+        _interactionCircleImage = interactionCircle.GetComponent<Image>();
+        _interactionCircleCanvasGroup.alpha = 0;
+    }
 
-	// Use this for initialization
-	void Start ()
-	{
-		_gameController.GetComponent<InputHandler> ().AddInputListener (this, InputHandler.JOYSTICK_NAMES [_controllerIndex]);
+    // Use this for initialization
+    void Start()
+    {
+        _gameController.GetComponent<InputHandler>().AddInputListener(this, InputHandler.JOYSTICK_NAMES[_controllerIndex]);
 
-		_spawnPosition = transform.position;
-		_quaternionUp = transform.rotation;
+        _spawnPosition = transform.position;
+        _quaternionUp = transform.rotation;
 
-		//
-		string playerUiPath = "";
+        //
+        string playerUiPath = "";
 
-		switch (_playerName) {
-		case PlayerName.BluePlayer:
-			playerUiPath = "UI/InGameUI/BluePlayerUI/";
-			break;
-		case PlayerName.GreenPlayer:
-			playerUiPath = "UI/InGameUI/GreenPlayerUI/";
-			break;
-		case PlayerName.RedPlayer:
-			playerUiPath = "UI/InGameUI/RedPlayerUI/";
-			break;
-		case PlayerName.PurplePlayer:
-			playerUiPath = "UI/InGameUI/PurplePlayerUI/";
-			break;
-		}
+        switch (_playerName)
+        {
+            case PlayerName.BluePlayer:
+                playerUiPath = "UI/InGameUI/BluePlayerUI/";
+                break;
+            case PlayerName.GreenPlayer:
+                playerUiPath = "UI/InGameUI/GreenPlayerUI/";
+                break;
+            case PlayerName.RedPlayer:
+                playerUiPath = "UI/InGameUI/RedPlayerUI/";
+                break;
+            case PlayerName.PurplePlayer:
+                playerUiPath = "UI/InGameUI/PurplePlayerUI/";
+                break;
+        }
 
-		_uiScoreText = GameObject.Find (playerUiPath + "ScoreText").GetComponent<Text> ();
-		_uiScoreText.text = "Score: 0";
+        _uiScoreText = GameObject.Find(playerUiPath + "ScoreText").GetComponent<Text>();
+        _uiScoreText.text = "Score: 0";
 
-		_uiItemCanvasGroup = GameObject.Find (playerUiPath + "ItemImage").GetComponent<CanvasGroup> ();
-		_uiItemCanvasGroup.alpha = 0;
+        _uiItemCanvasGroup = GameObject.Find(playerUiPath + "ItemImage").GetComponent<CanvasGroup>();
+        _uiItemCanvasGroup.alpha = 0;
 
-		//
-		Global.GameController.RegisterPlayer (this);
-	}
+        //
+        Global.GameController.RegisterPlayer(this);
+    }
 
-	//######################################################################################################
-	// Update
-	//######################################################################################################
-	
-	// Update is called once per frame
-	void Update ()
-	{
-		//####################################################################################
-		//death
-		if (!_isDead && !_isDashing) {
-			if (_floorColliders.Count == 0 && this.transform.position != _spawnPosition) {
-				_isDead = true;
-				_respawnTimer = 0f;
+    //######################################################################################################
+    // Update
+    //######################################################################################################
 
-				_isDashing = false;
-				_isBumped = false;
+    // Update is called once per frame
+    void Update()
+    {
+        //####################################################################################
+        //death
+        if (!_isDead && !_isDashing)
+        {
+            if (_floorColliders.Count == 0 && this.transform.position != _spawnPosition)
+            {
+                _isDead = true;
+                _respawnTimer = 0f;
 
-				_movementAcceleration.Set (0, 0, 0);
-			}
-		} else if (_isDead) {
-			if (_respawnTimer >= PlayerConstants.RESPAWN_COOLDOWN) {
-				_isDead = false;
+                _isDashing = false;
+                _isBumped = false;
 
-				transform.position = _spawnPosition;
-				transform.up = new Vector3 (0, 1, 0);
-				this.transform.localScale = new Vector3 (1, 1, 1);
+                _movementAcceleration.Set(0, 0, 0);
 
-				_movementAcceleration.Set (0, 0, 0);
-				_velocity.Set (0, 0, 0);
-			} else {
-				_respawnTimer += Time.deltaTime;
+                Global.GameController.OnPlayerDied();
+            }
+        }
+        else if (_isDead)
+        {
+            if (!Global.GameController.IsGameInEndPhase && _respawnTimer >= PlayerConstants.RESPAWN_COOLDOWN)
+            {
+                _isDead = false;
 
-				Vector3 currentScale = this.transform.localScale;
-				currentScale.x -= PlayerConstants.RESPAWN_COOLDOWN * 0.8f * Time.deltaTime;
-				currentScale.y -= PlayerConstants.RESPAWN_COOLDOWN * 0.8f * Time.deltaTime;
-				this.transform.localScale = currentScale;
-			}
-		}
+                transform.position = _spawnPosition;
+                transform.up = new Vector3(0, 1, 0);
+                this.transform.localScale = new Vector3(1, 1, 1);
 
-		//####################################################################################
-		//movement
+                _movementAcceleration.Set(0, 0, 0);
+                _velocity.Set(0, 0, 0);
+            }
+            else if (_respawnTimer < PlayerConstants.RESPAWN_COOLDOWN)
+            {
+                _respawnTimer += Time.deltaTime;
 
-		//Debug.Log ("PlayerController " + joystickIndex + ": Update: acceleration=" + movement_acceleration.ToString ());
+                Vector3 currentScale = this.transform.localScale;
+                currentScale.x -= PlayerConstants.RESPAWN_COOLDOWN * 0.8f * Time.deltaTime;
+                currentScale.y -= PlayerConstants.RESPAWN_COOLDOWN * 0.8f * Time.deltaTime;
+                this.transform.localScale = currentScale;
+            }
 
-		Vector3 totalAcceleration = new Vector3 ();
+            //
+            return;
+        }
 
-		//normal movement
-		if (!_isDashing) {
-			_dashCooldown = Mathf.Clamp (_dashCooldown - Time.deltaTime, 0, PlayerConstants.DASH_COOLDOWN);
+        //####################################################################################
+        //movement
 
-			totalAcceleration += _movementAcceleration;
-			//Debug.Log ("PlayerController " + joystickIndex + ": Update: movementVelocity=" + movement_velocity.ToString ());
-		}
-		//dashing movement
-		else if (_isDashing) {
-			if (_dashTimer >= PlayerConstants.DASH_DURATION) {
-				_isDashing = false;
-				_dashCooldown = PlayerConstants.DASH_COOLDOWN;
-			} else {
-				_dashTimer += Time.deltaTime;
-				totalAcceleration += _dashAcceleration;
-				//Debug.Log ("PlayerController " + joystickIndex + ": Update: dashVelocity=" + dash_velocity.ToString ());
-			}
-		}
+        //Debug.Log ("PlayerController " + joystickIndex + ": Update: acceleration=" + movement_acceleration.ToString ());
 
-		if (_isBumped) {
-			if (_bumpTimer >= PlayerConstants.BUMP_DURATION) {
-				_isBumped = false;
-				_bumpingPlayer = PlayerName.None;
-			} else {
-				_bumpTimer += Time.deltaTime;
-				totalAcceleration += _bumpAcceleration;
-			}
-		}
+        Vector3 totalAcceleration = new Vector3();
 
-		if (!Global.GameController.IsPaused && _gameController.WindForce.magnitude > 0) {
-			totalAcceleration += _gameController.WindForce;
-		}
+        //normal movement
+        if (!_isDashing)
+        {
+            _dashCooldown = Mathf.Clamp(_dashCooldown - Time.deltaTime, 0, PlayerConstants.DASH_COOLDOWN);
 
-		_velocity += totalAcceleration - PlayerConstants.MOVEMENT_FRICTION * _velocity;
-		_velocity = Vector3.ClampMagnitude (_velocity, PlayerConstants.MOVEMENT_MAX_VELOCITY);
+            totalAcceleration += _movementAcceleration;
+            //Debug.Log ("PlayerController " + joystickIndex + ": Update: movementVelocity=" + movement_velocity.ToString ());
+        }
+        //dashing movement
+        else if (_isDashing)
+        {
+            if (_dashTimer >= PlayerConstants.DASH_DURATION)
+            {
+                _isDashing = false;
+                _dashCooldown = PlayerConstants.DASH_COOLDOWN;
+            }
+            else
+            {
+                _dashTimer += Time.deltaTime;
+                totalAcceleration += _dashAcceleration;
+                //Debug.Log ("PlayerController " + joystickIndex + ": Update: dashVelocity=" + dash_velocity.ToString ());
+            }
+        }
 
-		//this.transform.position = this.transform.position + (_velocity * Time.deltaTime);
-		_rigidbody.velocity = _velocity;
+        if (_isBumped)
+        {
+            if (_bumpTimer >= PlayerConstants.BUMP_DURATION)
+            {
+                _isBumped = false;
+                _bumpingPlayer = PlayerName.None;
+            }
+            else
+            {
+                _bumpTimer += Time.deltaTime;
+                totalAcceleration += _bumpAcceleration;
+            }
+        }
 
-		if (_velocity.normalized.magnitude != 0 && !_isDead) {
-			//transform.rotation = Quaternion.LookRotation (velocity.normalized);
+        if (!Global.GameController.IsPaused && _gameController.WindForce.magnitude > 0)
+        {
+            totalAcceleration += _gameController.WindForce;
+        }
 
-			//transform.forward = _velocity.normalized;
-			transform.up = _velocity.normalized;
-		}
+        _velocity += totalAcceleration - PlayerConstants.MOVEMENT_FRICTION * _velocity;
+        _velocity = Vector3.ClampMagnitude(_velocity, PlayerConstants.MOVEMENT_MAX_VELOCITY);
 
-		//####################################################################################
-		// interaction
+        //this.transform.position = this.transform.position + (_velocity * Time.deltaTime);
+        _rigidbody.velocity = _velocity;
 
-		if (!_isDead && !_gameController.IsPaused && !_isDashing && !_isBumped) {
+        if (_velocity.normalized.magnitude != 0 && !_isDead)
+        {
+            //transform.rotation = Quaternion.LookRotation (velocity.normalized);
 
-			// B BUTTON DOWN
-			if (!_aButtonPreviouslyPressed && _aButtonCurrentlyPressed) {
-				//Debug.Log ("PlayerController:Update:B Button Down");
+            //transform.forward = _velocity.normalized;
+            transform.up = _velocity.normalized;
+        }
 
-				// PICK UP ITEM
-				if (_overlappingItems.Count > 0) {
-					//Debug.Log ("PlayerController:Update:B Button Down: Pick Up Item");
-					Item nearestItem = null;
-					float shortestDistance = float.MaxValue;
+        //####################################################################################
+        // interaction
 
-					foreach (Item item in _overlappingItems) {
-						Vector3 vector = item.transform.position - this.transform.position;
-						float distance = vector.magnitude;
+        if (!_isDead && !_gameController.IsPaused && !_isDashing && !_isBumped)
+        {
 
-						if (distance < shortestDistance) {
-							nearestItem = item;
-							shortestDistance = distance;
-						}
-					}
+            // B BUTTON DOWN
+            if (!_aButtonPreviouslyPressed && _aButtonCurrentlyPressed)
+            {
+                //Debug.Log ("PlayerController:Update:B Button Down");
 
-					DropCurrentItem ();
-					PickUpItem (nearestItem);
-				}
-				// MACHINE INTERACTION
-				else if (_overlappingMachines.Count > 0) {
-					//Debug.Log ("PlayerController:Update:B Button Down: Machine Interaction");
-					IMachine nearestMachine = null;
-					float shortestDistance = float.MaxValue;
+                // PICK UP ITEM
+                if (_overlappingItems.Count > 0)
+                {
+                    //Debug.Log ("PlayerController:Update:B Button Down: Pick Up Item");
+                    Item nearestItem = null;
+                    float shortestDistance = float.MaxValue;
 
-					foreach (IMachine machine in _overlappingMachines) {
-						Vector3 vector = machine.transform.position - this.transform.position;
-						float distance = vector.magnitude;
+                    foreach (Item item in _overlappingItems)
+                    {
+                        Vector3 vector = item.transform.position - this.transform.position;
+                        float distance = vector.magnitude;
 
-						if (distance < shortestDistance) {
-							nearestMachine = machine;
-							shortestDistance = distance;
-						}
-					}
+                        if (distance < shortestDistance)
+                        {
+                            nearestItem = item;
+                            shortestDistance = distance;
+                        }
+                    }
 
-					if (!_isInteracting || _currentMachine != nearestMachine) {
-						StartInteractingWithMachine (nearestMachine);
-					}
-				}
-				// DROP ITEM
-				else {
-					//Debug.Log ("PlayerController:Update:B Button Down: Drop Item");
-					DropCurrentItem ();
-				}
-			}
-			// B BUTTON HELD DOWN
-			else if (_aButtonPreviouslyPressed && _aButtonCurrentlyPressed) {
-				//Debug.Log ("PlayerController:Update:B Button Held Down");
+                    DropCurrentItem();
+                    PickUpItem(nearestItem);
+                }
+                // MACHINE INTERACTION
+                else if (_overlappingMachines.Count > 0)
+                {
+                    //Debug.Log ("PlayerController:Update:B Button Down: Machine Interaction");
+                    IMachine nearestMachine = null;
+                    float shortestDistance = float.MaxValue;
 
-				if (_isInteracting) {
-					if (_overlappingMachines.Count > 0) {
-						IMachine nearestMachine = null;
-						float shortestDistance = float.MaxValue;
+                    foreach (IMachine machine in _overlappingMachines)
+                    {
+                        Vector3 vector = machine.transform.position - this.transform.position;
+                        float distance = vector.magnitude;
 
-						foreach (IMachine machine in _overlappingMachines) {
-							Vector3 vector = machine.transform.position - this.transform.position;
-							float distance = vector.magnitude;
+                        if (distance < shortestDistance)
+                        {
+                            nearestMachine = machine;
+                            shortestDistance = distance;
+                        }
+                    }
 
-							if (distance < shortestDistance) {
-								nearestMachine = machine;
-								shortestDistance = distance;
-							}
-						}
+                    if (!_isInteracting || _currentMachine != nearestMachine)
+                    {
+                        StartInteractingWithMachine(nearestMachine);
+                    }
+                }
+                // DROP ITEM
+                else
+                {
+                    //Debug.Log ("PlayerController:Update:B Button Down: Drop Item");
+                    DropCurrentItem();
+                }
+            }
+            // B BUTTON HELD DOWN
+            else if (_aButtonPreviouslyPressed && _aButtonCurrentlyPressed)
+            {
+                //Debug.Log ("PlayerController:Update:B Button Held Down");
 
-						if (_currentMachine != nearestMachine) {
-							StopInteractingWithMachine ();
-						} else {
-							InteractWithMachine ();
-						}
-					} else {
-						StopInteractingWithMachine ();
-					}
-				}
-			}
-		}
+                if (_isInteracting)
+                {
+                    if (_overlappingMachines.Count > 0)
+                    {
+                        IMachine nearestMachine = null;
+                        float shortestDistance = float.MaxValue;
 
-		/*if (!_isDead && !_gameController._isPaused) {
+                        foreach (IMachine machine in _overlappingMachines)
+                        {
+                            Vector3 vector = machine.transform.position - this.transform.position;
+                            float distance = vector.magnitude;
+
+                            if (distance < shortestDistance)
+                            {
+                                nearestMachine = machine;
+                                shortestDistance = distance;
+                            }
+                        }
+
+                        if (_currentMachine != nearestMachine)
+                        {
+                            StopInteractingWithMachine();
+                        }
+                        else
+                        {
+                            InteractWithMachine();
+                        }
+                    }
+                    else
+                    {
+                        StopInteractingWithMachine();
+                    }
+                }
+            }
+        }
+
+        /*if (!_isDead && !_gameController._isPaused) {
 			if (!_aButtonPreviouslyPressed && _aButtonCurrentlyPressed && !_isDashing && _overlappingItems.Count > 0) {
 				DropCurrentItem ();
 				PickUpItem ();
@@ -319,14 +364,14 @@ public class PlayerController : MonoBehaviour, IInputListener, ILightEmitter
 			}
 		}*/
 
-		//####################################################################################
-		//mashine interaction
+        //####################################################################################
+        //mashine interaction
 
-		/*if (_overlappingItems.Count > 0) {
+        /*if (_overlappingItems.Count > 0) {
 			Debug.Log ("PlayerController:Update:overlapping with item");
 		}*/
 
-		/*bool interruptInteraction = false;
+        /*bool interruptInteraction = false;
 
 		MachinePlayerInteraction nearestInteractableMachine;
 		bool hasHitInteractableMachine = CheckForInteractableMachine (out nearestInteractableMachine);
@@ -352,18 +397,18 @@ public class PlayerController : MonoBehaviour, IInputListener, ILightEmitter
 			_currentMachine.OnEndInteraction (this);
 			_currentMachine = null;
 		}*/
-	}
+    }
 
-	void LateUpdate ()
-	{
-		_interactionCircleCanvasGroup.transform.parent.rotation = _quaternionUp;
-	}
+    void LateUpdate()
+    {
+        _interactionCircleCanvasGroup.transform.parent.rotation = _quaternionUp;
+    }
 
-	//########################################################################
-	// Collison
-	//########################################################################
+    //########################################################################
+    // Collison
+    //########################################################################
 
-	/*void OnControllerColliderHit (ControllerColliderHit hit)
+    /*void OnControllerColliderHit (ControllerColliderHit hit)
 	{
 		if (!_isDead) {
 			if (hit.gameObject.tag == "Player" && (_isDashing || _isBumped)) {
@@ -377,282 +422,326 @@ public class PlayerController : MonoBehaviour, IInputListener, ILightEmitter
 		}
 	}*/
 
-	void OnCollisionEnter2D (Collision2D collision)
-	{
-		if (!_isDead && collision.gameObject.tag == "Player" && (_isDashing || _isBumped)) {
-			//Debug.Log (_playerName + " collision pos=" + this.transform.position + " forward=" + this.transform.up);
-			RaycastHit2D[] rayHits = Physics2D.RaycastAll (this.transform.position + this.transform.up * _collider.radius, this.transform.up, 0.1f);
+    void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (!_isDead && collision.gameObject.tag == "Player" && (_isDashing || _isBumped))
+        {
+            //Debug.Log (_playerName + " collision pos=" + this.transform.position + " forward=" + this.transform.up);
+            RaycastHit2D[] rayHits = Physics2D.RaycastAll(this.transform.position + this.transform.up * _collider.radius, this.transform.up, 0.1f);
 
-			foreach (RaycastHit2D rayHit in rayHits) {
-				if (rayHit.collider.gameObject == collision.gameObject) {
-					PlayerController otherPlayer = collision.gameObject.GetComponent<PlayerController> ();
+            foreach (RaycastHit2D rayHit in rayHits)
+            {
+                if (rayHit.collider.gameObject == collision.gameObject)
+                {
+                    PlayerController otherPlayer = collision.gameObject.GetComponent<PlayerController>();
 
-					Debug.Log (_playerName + " has hit " + otherPlayer._playerName);
+                    Debug.Log(_playerName + " has hit " + otherPlayer._playerName);
 
-					if (otherPlayer._playerName != _bumpingPlayer) {
-						Vector3 pushDirection = otherPlayer.transform.position - this.transform.position;
-						pushDirection.Normalize ();
+                    if (otherPlayer._playerName != _bumpingPlayer)
+                    {
+                        Vector3 pushDirection = otherPlayer.transform.position - this.transform.position;
+                        pushDirection.Normalize();
 
-						otherPlayer.Bump (pushDirection, _playerName);
+                        otherPlayer.Bump(pushDirection, _playerName);
 
-						_isDashing = false;
-					}
-				}
-			}
-		}
-	}
+                        _isDashing = false;
+                    }
+                }
+            }
+        }
+    }
 
-	void OnTriggerEnter2D (Collider2D other)
-	{
-		switch (other.tag) {
-		case "Floor":
-			if (!_floorColliders.Contains (other.gameObject)) {
-				_floorColliders.Add (other.gameObject);
-			}
-			break;
-		case "Item":
-			Item item = other.GetComponent<Item> ();
+    void OnTriggerEnter2D(Collider2D other)
+    {
+        switch (other.tag)
+        {
+            case "Floor":
+                if (!_floorColliders.Contains(other.gameObject))
+                {
+                    _floorColliders.Add(other.gameObject);
+                }
+                break;
+            case "Item":
+                Item item = other.GetComponent<Item>();
 
-			if (!_overlappingItems.Contains (item)) {
-				_overlappingItems.Add (item);
-				//Debug.Log ("PlayerController: OnTriggerEnter: overlapping with " + _item.itemName);
-			}
-			break;
-		case "Machine":
-			IMachine machine = other.GetComponent<IMachine> ();
+                if (!_overlappingItems.Contains(item))
+                {
+                    _overlappingItems.Add(item);
+                    //Debug.Log ("PlayerController: OnTriggerEnter: overlapping with " + _item.itemName);
+                }
+                break;
+            case "Machine":
+                IMachine machine = other.GetComponent<IMachine>();
 
-			if (machine.IsActive && !_overlappingMachines.Contains (machine)) {
-				_overlappingMachines.Add (machine);
-			}
-			break;
-		}
-	}
+                if (machine.IsActive && !_overlappingMachines.Contains(machine))
+                {
+                    _overlappingMachines.Add(machine);
+                }
+                break;
+            case "FlyingPlank":
+                Destroy(other.gameObject);
 
-	void OnTriggerExit2D (Collider2D other)
-	{
-		switch (other.tag) {
-		case "Floor":
-			_floorColliders.Remove (other.gameObject);
-			break;
-		case "Item":
-			Item item = other.GetComponent<Item> ();
+                _isDead = true;
+                _respawnTimer = 0f;
 
-			if (_overlappingItems.Contains (item)) {
-				_overlappingItems.Remove (item);
-			}
-			break;
-		case "Machine":
-			IMachine machine = other.GetComponent<IMachine> ();
+                _isDashing = false;
+                _isBumped = false;
 
-			_overlappingMachines.Remove (machine);
-			break;
-		}
-	}
+                _movementAcceleration.Set(0, 0, 0);
 
-	void OnTriggerStay2D (Collider2D other)
-	{
-		switch (other.tag) {
-		case "Machine":
-			IMachine machine = other.GetComponent<IMachine> ();
+                this.transform.position = new Vector3(100, 100, 0);
 
-			if (machine.IsActive && !_overlappingMachines.Contains (machine)) {
-				_overlappingMachines.Add (machine);
-			}
-			break;
-		}
-	}
+                Global.GameController.OnPlayerDied();
+                break;
+        }
+    }
 
-	//########################################################################
-	// Input
-	//########################################################################
+    void OnTriggerExit2D(Collider2D other)
+    {
+        switch (other.tag)
+        {
+            case "Floor":
+                _floorColliders.Remove(other.gameObject);
+                break;
+            case "Item":
+                Item item = other.GetComponent<Item>();
 
-	void IInputListener.OnHandleLeftStick (int joystickIndex, Vector2 stickState)
-	{
-		//Debug.Log ("PlayerController: OnHandleLeftStick: called");
+                if (_overlappingItems.Contains(item))
+                {
+                    _overlappingItems.Remove(item);
+                }
+                break;
+            case "Machine":
+                IMachine machine = other.GetComponent<IMachine>();
 
-		if (joystickIndex == _controllerIndex && !_isDead && !_gameController.IsPaused) {
-			//Debug.Log ("PlayerController " + joystickIndex + ": OnHandleLeftStick: called");
+                _overlappingMachines.Remove(machine);
+                break;
+        }
+    }
 
-			float force = Mathf.Clamp (stickState.magnitude, 0f, 1f) * PlayerConstants.MOVEMENT_MAX_ACCELERATION;
-			//Debug.Log ("PlayerController " + joystickIndex + ": stickstate=" + stickState.ToString ());
-			//Debug.Log ("PlayerController " + joystickIndex + ": force=" + _force);
+    void OnTriggerStay2D(Collider2D other)
+    {
+        switch (other.tag)
+        {
+            case "Machine":
+                IMachine machine = other.GetComponent<IMachine>();
 
-			_movementAcceleration.Set (0, 0, 0);
+                if (machine.IsActive && !_overlappingMachines.Contains(machine))
+                {
+                    _overlappingMachines.Add(machine);
+                }
+                break;
+        }
+    }
 
-			_movementAcceleration.x = stickState.x;
-			_movementAcceleration.y = stickState.y;
+    //########################################################################
+    // Input
+    //########################################################################
 
-			_movementAcceleration.Normalize ();
-			_movementAcceleration *= force;
-		}
-	}
+    void IInputListener.OnHandleLeftStick(int joystickIndex, Vector2 stickState)
+    {
+        //Debug.Log ("PlayerController: OnHandleLeftStick: called");
 
-	void IInputListener.OnHandleXButton (int joystickIndex, bool pressed)
-	{
-		if (joystickIndex != _controllerIndex) {
-			return;
-		}
+        if (joystickIndex == _controllerIndex && !_isDead && !_gameController.IsPaused)
+        {
+            //Debug.Log ("PlayerController " + joystickIndex + ": OnHandleLeftStick: called");
 
-		_xButtonPreviouslyPressed = _xButtonCurrentlyPressed;
-		_xButtonCurrentlyPressed = pressed;
+            float force = Mathf.Clamp(stickState.magnitude, 0f, 1f) * PlayerConstants.MOVEMENT_MAX_ACCELERATION;
+            //Debug.Log ("PlayerController " + joystickIndex + ": stickstate=" + stickState.ToString ());
+            //Debug.Log ("PlayerController " + joystickIndex + ": force=" + _force);
 
-		if (!_isDead && !_gameController.IsPaused) {
-			if (!_xButtonPreviouslyPressed && _xButtonCurrentlyPressed && !_isDashing && _dashCooldown == 0) {
-				_isDashing = true;
-				_dashTimer = 0f;
-				_dashAcceleration = _movementAcceleration.normalized * PlayerConstants.DASH_VELOCITY;
-			}
-		}
-	}
+            _movementAcceleration.Set(0, 0, 0);
 
-	void IInputListener.OnHandleAButton (int joystickIndex, bool pressed)
-	{
-		if (joystickIndex != _controllerIndex) {
-			return;
-		}
+            _movementAcceleration.x = stickState.x;
+            _movementAcceleration.y = stickState.y;
 
-		_aButtonPreviouslyPressed = _aButtonCurrentlyPressed;
-		_aButtonCurrentlyPressed = pressed;
-	}
+            _movementAcceleration.Normalize();
+            _movementAcceleration *= force;
+        }
+    }
 
-	void IInputListener.OnHandleBButton (int joystickIndex, bool pressed)
-	{
-		if (joystickIndex != _controllerIndex) {
-			return;
-		}
+    void IInputListener.OnHandleXButton(int joystickIndex, bool pressed)
+    {
+        if (joystickIndex != _controllerIndex)
+        {
+            return;
+        }
 
-		_bButtonPreviouslyPressed = _bButtonCurrentlyPressed;
-		_bButtonCurrentlyPressed = pressed;
-	}
+        _xButtonPreviouslyPressed = _xButtonCurrentlyPressed;
+        _xButtonCurrentlyPressed = pressed;
 
-	//########################################################################
-	// Public Methods
-	//########################################################################
+        if (!_isDead && !_gameController.IsPaused)
+        {
+            if (!_xButtonPreviouslyPressed && _xButtonCurrentlyPressed && !_isDashing && _dashCooldown == 0)
+            {
+                _isDashing = true;
+                _dashTimer = 0f;
+                _dashAcceleration = _movementAcceleration.normalized * PlayerConstants.DASH_VELOCITY;
+            }
+        }
+    }
 
-	public void Bump (Vector3 direction, PlayerName bumpingPlayer)
-	{
-		_isBumped = true;
-		_bumpTimer = 0f;
-		_bumpingPlayer = bumpingPlayer;
+    void IInputListener.OnHandleAButton(int joystickIndex, bool pressed)
+    {
+        if (joystickIndex != _controllerIndex)
+        {
+            return;
+        }
 
-		_bumpAcceleration = direction * PlayerConstants.BUMP_VELOCITY;
+        _aButtonPreviouslyPressed = _aButtonCurrentlyPressed;
+        _aButtonCurrentlyPressed = pressed;
+    }
 
-		DropCurrentItem ();
-	}
+    void IInputListener.OnHandleBButton(int joystickIndex, bool pressed)
+    {
+        if (joystickIndex != _controllerIndex)
+        {
+            return;
+        }
 
-	public void DestroyCurrentItem ()
-	{
-		if (CurrentItem == null) {
-			return;
-		}
+        _bButtonPreviouslyPressed = _bButtonCurrentlyPressed;
+        _bButtonCurrentlyPressed = pressed;
+    }
 
-		Destroy (_currentItemGO);
+    //########################################################################
+    // Public Methods
+    //########################################################################
 
-		_uiItemCanvasGroup.alpha = 1;
-		CurrentItem = null;
-		_currentItemGO = null;
-	}
+    public void Bump(Vector3 direction, PlayerName bumpingPlayer)
+    {
+        _isBumped = true;
+        _bumpTimer = 0f;
+        _bumpingPlayer = bumpingPlayer;
 
-	public bool HasItem {
-		get {
-			if (CurrentItem == null) {
-				return false;
-			}
+        _bumpAcceleration = direction * PlayerConstants.BUMP_VELOCITY;
 
-			return true;
-		}
-	}
+        DropCurrentItem();
+    }
 
-	public void AddScore (int score)
-	{
-		Score += score;
+    public void DestroyCurrentItem()
+    {
+        if (CurrentItem == null)
+        {
+            return;
+        }
 
-		_uiScoreText.text = "Score: " + Score;
-	}
+        Destroy(_currentItemGO);
 
-	public bool IsEmittingLight ()
-	{
-		if (HasItem && CurrentItem._itemType == ItemType.torch) {
-			return true;
-		}
+        _uiItemCanvasGroup.alpha = 1;
+        CurrentItem = null;
+        _currentItemGO = null;
+    }
 
-		return false;
-	}
-		
-	//########################################################################
-	// Private Methods
-	//########################################################################
+    public bool HasItem
+    {
+        get
+        {
+            if (CurrentItem == null)
+            {
+                return false;
+            }
 
-	private void DropCurrentItem ()
-	{
-		if (CurrentItem != null) {
-			CurrentItem.OnDrop ();
-			CurrentItem.transform.position = this.transform.position;
+            return true;
+        }
+    }
 
-			_uiItemCanvasGroup.alpha = 0;
-			CurrentItem = null;
-			_currentItemGO = null;
-		}
-	}
+    public void AddScore(int score)
+    {
+        Score += score;
 
-	private void PickUpItem (Item item)
-	{
-		if (CurrentItem == null) {
-			CurrentItem = item;
-			_currentItemGO = CurrentItem.gameObject;
+        _uiScoreText.text = "Score: " + Score;
+    }
 
-			_uiItemCanvasGroup.alpha = 1;
+    public bool IsEmittingLight()
+    {
+        if (HasItem && CurrentItem._itemType == ItemType.torch)
+        {
+            return true;
+        }
 
-			_overlappingItems.Remove (CurrentItem);
-			CurrentItem.OnPickUp ();
-		}
-	}
+        return false;
+    }
 
-	private void StartInteractingWithMachine (IMachine machine)
-	{
-		if (_isInteracting) {
-			StopInteractingWithMachine ();
-		}
+    //########################################################################
+    // Private Methods
+    //########################################################################
 
-		_isInteracting = true;
-		_currentMachine = machine;
+    private void DropCurrentItem()
+    {
+        if (CurrentItem != null)
+        {
+            CurrentItem.OnDrop();
+            CurrentItem.transform.position = this.transform.position;
 
-		_interactionCircleCanvasGroup.alpha = 1;
-		_interactionCircleImage.fillAmount = 0;
+            _uiItemCanvasGroup.alpha = 0;
+            CurrentItem = null;
+            _currentItemGO = null;
+        }
+    }
 
-		//
-		InteractWithMachine ();
-	}
+    private void PickUpItem(Item item)
+    {
+        if (CurrentItem == null)
+        {
+            CurrentItem = item;
+            _currentItemGO = CurrentItem.gameObject;
 
-	private void InteractWithMachine ()
-	{
-		if (!_isInteracting) {
-			return;
-		}
+            _uiItemCanvasGroup.alpha = 1;
 
-		MachineInteractionState state = _currentMachine.Interact (this);
+            _overlappingItems.Remove(CurrentItem);
+            CurrentItem.OnPickUp();
+        }
+    }
 
-		if (!state.isLegal) {
-			StopInteractingWithMachine ();
-			return;
-		}
+    private void StartInteractingWithMachine(IMachine machine)
+    {
+        if (_isInteracting)
+        {
+            StopInteractingWithMachine();
+        }
 
-		if (state.progress >= 1) {
-			StopInteractingWithMachine ();
-		}
+        _isInteracting = true;
+        _currentMachine = machine;
 
-		_interactionCircleImage.fillAmount = state.progress;
-	}
+        _interactionCircleCanvasGroup.alpha = 1;
+        _interactionCircleImage.fillAmount = 0;
 
-	private void StopInteractingWithMachine ()
-	{
-		_isInteracting = false;
-		_currentMachine = null;
+        //
+        InteractWithMachine();
+    }
 
-		_interactionCircleCanvasGroup.alpha = 0;
-	}
+    private void InteractWithMachine()
+    {
+        if (!_isInteracting)
+        {
+            return;
+        }
 
-	/*private bool IsAboveVoid ()
+        MachineInteractionState state = _currentMachine.Interact(this);
+
+        if (!state.isLegal)
+        {
+            StopInteractingWithMachine();
+            return;
+        }
+
+        if (state.progress >= 1)
+        {
+            StopInteractingWithMachine();
+        }
+
+        _interactionCircleImage.fillAmount = state.progress;
+    }
+
+    private void StopInteractingWithMachine()
+    {
+        _isInteracting = false;
+        _currentMachine = null;
+
+        _interactionCircleCanvasGroup.alpha = 0;
+    }
+
+    /*private bool IsAboveVoid ()
 	{
 		if (_floorColliders.Count == 0) {
 			return true;
@@ -682,7 +771,7 @@ public class PlayerController : MonoBehaviour, IInputListener, ILightEmitter
 		return false;
 	}*/
 
-	/*private bool CheckForInteractableMachine (out MachinePlayerInteraction interactableMachine)
+    /*private bool CheckForInteractableMachine (out MachinePlayerInteraction interactableMachine)
 	{
 		Ray ray = new Ray (this.transform.position - new Vector3 (0f, -0.5f, 0f), this.transform.forward);
 		RaycastHit[] hits = Physics.RaycastAll (ray, _collider.radius * 2f);

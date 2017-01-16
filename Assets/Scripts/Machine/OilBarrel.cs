@@ -39,8 +39,12 @@ public class OilBarrel : IMachine
 		if (!_isActive) {
 			return;
 		}
+        else if (Global.GameController.IsGameInEndPhase)
+        {
+            Deactivate();
+        }
 
-		if (_isCleaning) {
+        if (_isCleaning) {
 			if (!_cleaningInteraction.interactionUpdated) {
 				_isCleaning = false;
 			}

@@ -34,8 +34,12 @@ public class Lamp : IMachine, ILightEmitter
 		if (!_isActive) {
 			return;
 		}
+        else if (Global.GameController.IsGameInEndPhase)
+        {
+            Deactivate();
+        }
 
-		if (_isRepairing) {
+        if (_isRepairing) {
 			if (!_repairInteraction.interactionUpdated) {
 				_isRepairing = false;
 			}
